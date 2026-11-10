@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
 import ChatBubble from '../../components/ChatBubble';
 import ChatInput from '../../components/ChatInput';
 import { askGuide, Intent, QUICK_ACTIONS } from '../../services/chatApi';
@@ -11,12 +12,19 @@ type GMsg = { id: string; mine: boolean; text: string; questions?: string[]; chi
 
 const clock = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-export default function GuideChatScreen({ navigation }: any) {
-  const [msgs, setMsgs] = useState<GMsg[]>([{
-    id: 'm0', mine: false, time: `Today ${clock()}`,
-    text: "Hi Aanya, I'm Setu Guide. I can suggest conversation ideas, help you understand this stage and share tips for your next steps. How can I help you today?",
-    chips: QUICK_ACTIONS.map((q) => q.label),
-  }]);
+export default function GuideChatScreen({ navigation, route }: any) {
+  const { user } = useAuth();
+  const idRef = useRef(0);
+  const nid = (prefix: string) => `${prefix}${++idRef.current}`; // unique even for two messages in the same millisecond
+
+  const [msgs, setMsgs] = useState<GMsg[]>(() => {
+    const first = (user?.name ?? '').trim().split(' ')[0];
+    return [{
+      id: 'm0', mine: false, time: `Today ${clock()}`,
+      text: `${first ? `Hi ${first}, I'm` : "Hi, I'm"} Setu Guide. I can suggest conversation ideas, help you understand this stage and share tips for your next steps. How can I help you today?`,
+      chips: QUICK_ACTIONS.map((q) => q.label),
+    }];
+  });
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState('');
   const scroll = useRef<ScrollView>(null);
@@ -24,19 +32,37 @@ export default function GuideChatScreen({ navigation }: any) {
   const add = (m: GMsg) => setMsgs((prev) => [...prev, m]);
 
   const send = async (p: { intent?: Intent; text?: string }) => {
-    const shown = p.text ?? QUICK_ACTIONS.find((q) => q.intent === p.intent)?.label ?? '';
-    add({ id: `u${Date.now()}`, mine: true, text: shown, time: clock() });
+    if (typing) return;
+    const msg = p.text?.trim();
+    if (!p.intent && !msg) return; // nothing to send
+    const shown = msg ?? QUICK_ACTIONS.find((q) => q.intent === p.intent)?.label ?? '';
+    add({ id: nid('u'), mine: true, text: shown, time: clock() });
     setText(''); setTyping(true);
-    const r = await askGuide({ intent: p.intent, message: p.text }); // never throws: returns a fallback bubble
-    setTyping(false);
-    // fallback_used replies are shown as normal bubbles
-    add({ id: `b${Date.now()}`, mine: false, text: r.reply, questions: r.questions, chips: r.chips, safety: r.safety });
+    try {
+      const r = await askGuide({ intent: p.intent, message: msg }); // normally returns a fallback bubble instead of throwing
+      add({ id: nid('b'), mine: false, text: r.reply, questions: r.questions, chips: r.chips, safety: r.safety });
+    } catch {
+      add({ id: nid('b'), mine: false, text: "Sorry, I couldn't answer just now. Please try again in a moment." });
+    } finally {
+      setTyping(false); // always clear, so the input can never get stuck disabled
+    }
   };
 
   const onChip = (label: string) => {
     const quick = QUICK_ACTIONS.find((q) => q.label === label);
     quick ? send({ intent: quick.intent }) : send({ text: label });
   };
+
+  // a tile on the Guide landing screen opens the chat with a topic: send it once
+  const startedRef = useRef(false);
+  useEffect(() => {
+    const intent = route?.params?.intent as Intent | undefined;
+    if (intent && !startedRef.current) {
+      startedRef.current = true;
+      send({ intent });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -51,7 +77,7 @@ export default function GuideChatScreen({ navigation }: any) {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView ref={scroll} contentContainerStyle={{ padding: spacing.lg }} keyboardShouldPersistTaps="handled" onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: true })}>
           {msgs.map((m) => (
             <ChatBubble key={m.id} mine={m.mine} bot text={m.text} time={m.time}>
@@ -80,7 +106,7 @@ export default function GuideChatScreen({ navigation }: any) {
           ))}
           {typing && <ChatBubble mine={false} bot text="Setu Guide is typing..." />}
         </ScrollView>
-        <ChatInput value={text} onChangeText={setText} disabled={typing} onSend={() => send({ text: text.trim() })} maxLength={500} placeholder="Ask Setu Guide" />
+        <ChatInput value={text} onChangeText={setText} disabled={typing} onSend={() => send({ text })} maxLength={500} placeholder="Ask Setu Guide" />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

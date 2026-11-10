@@ -5,6 +5,7 @@ import { buildStages, Connection, delay, Person, ReceivedRequest, SentRequest, s
 export const USE_MOCK = true;
 export const BASE_URL = 'https://REPLACE-WITH-STAGING-URL'; // lead shares this privately; never commit real URLs or keys
 
+// ---------- Session token ----------
 const TOKEN_KEY = 'setu_session_token';
 export const saveToken = (t: string) => AsyncStorage.setItem(TOKEN_KEY, t);
 export const getToken = () => AsyncStorage.getItem(TOKEN_KEY);
@@ -28,9 +29,10 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
   return body as T;
 }
 
-// ---- Auth (v0 contract: POST /auth/dev-login, GET /me) ----
+// ---------- Auth (v0 contract: POST /auth/dev-login, GET /me) ----------
 export type User = { id: string; name: string; avatar?: string };
 
+// Used by the Google and Apple buttons. Always signs in as the seeded user Aanya.
 export async function devLogin(): Promise<{ token: string; user: User }> {
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 600));
@@ -44,8 +46,39 @@ export async function getMe(): Promise<User> {
   return request('/me');
 }
 
+// ---------- OTP (demo) ----------
+// A real SMS needs a backend and an SMS provider. In mock mode the code is generated here
+// and shown on screen. The real endpoints below are NOT in the v0 contract: confirm them with Baharath.
+let demoOtp = '';
 
-// ---- Home (GET /home) ----
+export async function sendOtp(phone: string): Promise<{ demoCode?: string }> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 500));
+    demoOtp = String(Math.floor(100000 + Math.random() * 900000));
+    return { demoCode: demoOtp };
+  }
+  const r = await request<{ ok: boolean; demoCode?: string }>('/auth/send-otp', {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  });
+  return { demoCode: r.demoCode }; // only present on staging when DEMO_OTP=true
+}
+
+// Returns the session on success, or null for a wrong code
+export async function verifyOtp(phone: string, code: string): Promise<{ token: string; user: User } | null> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 500));
+    // a new phone user has no name yet, so the app asks for it
+    return code === demoOtp ? { token: 'mock-token', user: { id: `u_${phone}`, name: '' } } : null;
+  }
+  try {
+    return await request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, code }) });
+  } catch {
+    return null;
+  }
+}
+
+// ---------- Home (GET /home) ----------
 export type AttentionItem = { id: string; icon: string; title: string; description: string; target: 'requests' | 'active' };
 export type HomeData = {
   userName: string;
@@ -60,8 +93,20 @@ export async function getHome(): Promise<HomeData> {
   await delay();
   const n = store.received.length;
   const attention: AttentionItem[] = [];
-  if (n > 0) attention.push({ id: 'a1', icon: 'heart-outline', title: `${n} new interest request${n > 1 ? 's' : ''}`, description: 'People would like to connect with you', target: 'requests' });
-  if (store.active.length > 0) attention.push({ id: 'a2', icon: 'shield-checkmark-outline', title: 'Connection consent pending', description: 'Review what you share with your match', target: 'active' });
+  if (n > 0) {
+    attention.push({
+      id: 'a1', icon: 'heart-outline',
+      title: `${n} new interest request${n > 1 ? 's' : ''}`,
+      description: 'People would like to connect with you', target: 'requests',
+    });
+  }
+  if (store.active.length > 0) {
+    attention.push({
+      id: 'a2', icon: 'shield-checkmark-outline',
+      title: 'Connection consent pending',
+      description: 'Review what you share with your match', target: 'active',
+    });
+  }
   const current = store.active[0] ?? null;
   return {
     userName: 'Aanya',
@@ -72,22 +117,26 @@ export async function getHome(): Promise<HomeData> {
   };
 }
 
-// ---- Connections ----
+// ---------- Connections ----------
 export async function getReceived(): Promise<ReceivedRequest[]> {
   if (!USE_MOCK) return request('/requests?box=received');
-  await delay(); return [...store.received];
+  await delay();
+  return [...store.received];
 }
 export async function getSent(): Promise<SentRequest[]> {
   if (!USE_MOCK) return request('/requests?box=sent');
-  await delay(); return [...store.sent];
+  await delay();
+  return [...store.sent];
 }
 export async function getActive(): Promise<Connection[]> {
   if (!USE_MOCK) return request('/connections?status=active');
-  await delay(); return [...store.active];
+  await delay();
+  return [...store.active];
 }
 export async function getDiscover(): Promise<Person[]> {
   if (!USE_MOCK) return request('/discover');
-  await delay(); return [...store.discover];
+  await delay();
+  return [...store.discover];
 }
 
 export async function acceptRequest(id: string): Promise<void> {
@@ -114,10 +163,21 @@ export async function sendInterest(person: Person): Promise<void> {
   store.sent.push({ ...person, status: 'Waiting for response' });
 }
 export async function skipPerson(person: Person): Promise<void> {
-  if (USE_MOCK) { await delay(200); store.discover = store.discover.filter((x) => x.id !== person.id); }
+  if (USE_MOCK) {
+    await delay(200);
+    store.discover = store.discover.filter((x) => x.id !== person.id);
+  }
 }
+export async function getBookmarks(): Promise<string[]> {
+  if (!USE_MOCK) return request('/bookmarks'); // not in the v0 contract: confirm with Bharrath
+  return [...store.bookmarks];
+}
+
 export async function toggleBookmark(id: string): Promise<boolean> {
-  if (!USE_MOCK) { await request(`/bookmarks/${id}`, { method: 'POST' }); return true; }
+  if (!USE_MOCK) {
+    const r = await request<{ bookmarked: boolean }>(`/bookmarks/${id}`, { method: 'POST' });
+    return r.bookmarked; // the old version always returned true, so un-bookmarking could never work
+  }
   store.bookmarks = store.bookmarks.includes(id) ? store.bookmarks.filter((b) => b !== id) : [...store.bookmarks, id];
   return store.bookmarks.includes(id);
 }

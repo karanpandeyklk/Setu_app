@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -9,13 +9,13 @@ import Chip from '../../components/Chip';
 import MiniStepper from '../../components/Stepper';
 import { useAuth } from '../../context/AuthContext';
 import { getJourney } from '../../services/journeyApi';
-import { PROFILES } from '../../services/profileData';
+import { useOwnProfile } from '../../services/ownProfile';
 import { STAGE_LABELS } from '../../services/mockData';
 import { colors, fonts, radius, spacing } from '../../theme';
 
 export default function ProfileScreen({ navigation }: any) {
-  const { signOut } = useAuth();
-  const me = PROFILES.u_aanya;
+  const { user, signOut } = useAuth();
+  const me = useOwnProfile(); // the signed-in user's own data, not a mock
   const [stages, setStages] = useState<any[]>([]);
 
   useFocusEffect(useCallback(() => {
@@ -24,6 +24,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   const active = stages.find((s) => s.status === 'active');
   const soon = (what: string) => () => Alert.alert(what, 'This screen is a stretch goal and is not built yet.');
+  const dash = (v?: string | number) => (v ? String(v) : '—');
 
   const menu = [
     { icon: 'person-outline', label: 'View My Profile', onPress: () => navigation.navigate('ProfileDetail', { mode: 'own', profileId: 'u_aanya' }) },
@@ -39,24 +40,40 @@ export default function ProfileScreen({ navigation }: any) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.top}>
           <View>
-            <Avatar size={96} verified />
+            {me.photoUri ? (
+              <Image source={{ uri: me.photoUri }} style={styles.photo} accessibilityLabel="Your profile photo" />
+            ) : (
+              <Avatar size={96} verified />
+            )}
             <Pressable style={styles.pencil} onPress={soon('Edit photo')} accessibilityRole="button" accessibilityLabel="Edit photo">
               <Ionicons name="pencil" size={14} color="#fff" />
             </Pressable>
           </View>
           <Text style={styles.name}>{me.name}</Text>
           <Chip label="Profile Active" tone="green" dot />
-          <Text style={styles.bio}>{me.bio}</Text>
+          {me.bio ? (
+            <Text style={styles.bio}>{me.bio}</Text>
+          ) : (
+            <Text style={[styles.bio, { color: colors.primary }]} onPress={soon('Edit Profile')} accessibilityRole="button">
+              Add a short bio so people can get to know you
+            </Text>
+          )}
         </View>
 
         <View style={styles.stats}>
-          {[['Age', String(me.age)], ['Gender', me.gender], ['Height', me.height]].map(([k, v]) => (
+          {[['Age', dash(me.age)], ['Gender', dash(me.gender)], ['Height', dash(me.height)]].map(([k, v]) => (
             <Card key={k} style={styles.stat}><Text style={styles.statV}>{v}</Text><Text style={styles.statK}>{k}</Text></Card>
           ))}
         </View>
         <View style={styles.pair}>
-          <View style={styles.pairItem}><Ionicons name="school-outline" size={18} color={colors.primary} /><Text style={styles.pairText}>{me.education}</Text></View>
-          <View style={styles.pairItem}><Ionicons name="briefcase-outline" size={18} color={colors.primary} /><Text style={styles.pairText}>{me.profession}</Text></View>
+          <Pressable style={styles.pairItem} onPress={me.education ? undefined : soon('Edit Profile')}>
+            <Ionicons name="school-outline" size={18} color={colors.primary} />
+            <Text style={styles.pairText}>{me.education || 'Add education'}</Text>
+          </Pressable>
+          <Pressable style={styles.pairItem} onPress={me.profession ? undefined : soon('Edit Profile')}>
+            <Ionicons name="briefcase-outline" size={18} color={colors.primary} />
+            <Text style={styles.pairText}>{me.profession || 'Add profession'}</Text>
+          </Pressable>
         </View>
 
         <Card style={{ marginVertical: spacing.lg }}>
@@ -87,6 +104,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   top: { alignItems: 'center', gap: spacing.sm },
+  photo: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.primarySoft },
   pencil: { position: 'absolute', right: 0, bottom: 0, width: 30, height: 30, borderRadius: 15, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.bg },
   name: { fontFamily: fonts.display, fontSize: 26, color: colors.text, marginTop: spacing.sm },
   bio: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, textAlign: 'center', lineHeight: 19, paddingHorizontal: spacing.lg },

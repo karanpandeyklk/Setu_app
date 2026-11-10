@@ -45,4 +45,12 @@ export const store = {
   bookmarks: [] as string[],
 };
 
-export const delay = (ms = 500) => new Promise((r) => setTimeout(r, ms));
+// ---- Testing the error states ----
+// In mock mode nothing uses the network, so airplane mode does nothing.
+// Set `on: true`, save, and every mock call below fails like a dropped connection.
+// Set it back to false when you are done.
+export const SIMULATE_ERROR = { on: false };
+
+export const delay = (ms = 500) =>
+  new Promise<void>((resolve, reject) =>
+    setTimeout(() => (SIMULATE_ERROR.on ? reject(new Error('Simulated network error')) : resolve()), ms));

@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -10,7 +11,7 @@ import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
 import MiniStepper from '../../components/Stepper';
 import { getHome, HomeData } from '../../services/api';
-import { STAGE_LABELS } from '../../services/mockData';
+import { STAGE_LABELS, StageKey } from '../../services/mockData';
 import { colors, fonts, radius, spacing } from '../../theme';
 
 function greeting() {
@@ -18,53 +19,124 @@ function greeting() {
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
+// Short message under the journey stepper. Placeholder wording: confirm the final copy with design.
+const STAGE_BLURBS: Record<StageKey, { title: string; desc: string }> = {
+  connect: { title: "You're just getting started.", desc: 'Say hello and take your time before going further.' },
+  understand: { title: "You're currently getting to know each other.", desc: 'Take your time to have meaningful conversations and understand each other better.' },
+  reflect: { title: "It's time to reflect.", desc: 'Think about what you have learned and how compatible you feel.' },
+  discuss: { title: "You're discussing what matters.", desc: 'Talk openly about values, family and plans for the future.' },
+  agree: { title: "You're finding common ground.", desc: 'Confirm that you both want to move forward together.' },
+  family: { title: "You're involving family.", desc: 'Families come together to get to know each other.' },
+  reflect_again: { title: 'One more moment to reflect.', desc: 'Take a calm, honest look at everything before deciding.' },
+  decision: { title: "You're at the decision stage.", desc: 'Make your decision with care, and take the time you need.' },
+};
+
 export default function HomeScreen({ navigation }: any) {
+  const { user } = useAuth();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
+  const reqId = useRef(0); // ignore responses from older requests
 
   const load = useCallback(async (pull = false) => {
+    const id = ++reqId.current;
     pull ? setRefreshing(true) : setLoading(true);
     setError(false);
-    try { setData(await getHome()); } catch { setError(true); }
-    setLoading(false); setRefreshing(false);
+    try {
+      const d = await getHome();
+      if (id !== reqId.current) return;
+      setData(d);
+    } catch {
+      if (id !== reqId.current) return;
+      setError(true);
+    }
+    setLoading(false);
+    setRefreshing(false);
   }, []);
 
   // reload every time the tab is shown, so Home always matches Connections and Journey
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
+  const firstName = (user?.name || data?.userName || '').split(' ')[0];
   const cc = data?.currentConnection;
   const active = data?.stages.find((s) => s.status === 'active');
+  const blurb = active ? STAGE_BLURBS[active.key as StageKey] : null;
+  const labelledStages = data?.stages.map((s) => ({ ...s, label: STAGE_LABELS[s.key as StageKey] })) ?? [];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.primary} />}>
         <View style={styles.header}>
-          <Avatar size={44} />
-          <View style={{ flex: 1, marginLeft: spacing.md }}>
-            <Text style={styles.greet}>{greeting()},</Text>
-            <Text style={styles.name}>{data?.userName ?? 'Aanya'}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.greet}>
+              {greeting()}{firstName ? ', ' : ''}<Text style={styles.name}>{firstName}</Text>
+            </Text>
+            <Text style={styles.tagline}>Wishing you meaningful conversations and new possibilities ahead.</Text>
           </View>
-          <Pressable style={styles.bell} accessibilityRole="button" accessibilityLabel="Notifications">
+          <Pressable
+            style={styles.bell}
+            accessibilityRole="button"
+            accessibilityLabel={data?.unreadNotifications ? 'Notifications, you have unread' : 'Notifications'}
+          >
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
             {!!data?.unreadNotifications && <View style={styles.badge} />}
           </Pressable>
+          <Avatar size={40} uri={user?.avatar} label={user?.name} />
         </View>
 
         {loading && !data ? (
           <View style={{ gap: spacing.lg }}>
             <Skeleton height={150} /><Skeleton height={190} /><Skeleton height={110} />
           </View>
-        ) : error ? (
+        ) : error && !data ? (
           <EmptyState icon="cloud-offline-outline" title="Couldn't load your dashboard" description="Check your connection and try again." actionLabel="Try again" onAction={() => load()} />
         ) : data && (
           <>
-            {/* Needs Your Attention */}
+            {/* A failed refresh keeps the last data and shows a small banner */}
+            {error && (
+              <Pressable style={styles.banner} onPress={() => load()} accessibilityRole="button" accessibilityLabel="Couldn't refresh. Tap to try again.">
+                <Ionicons name="cloud-offline-outline" size={16} color={colors.danger} />
+                <Text style={styles.bannerText}>Couldn't refresh. Tap to try again.</Text>
+              </Pressable>
+            )}
+
+            {/* Current Connection */}
             <View style={styles.sectionRow}>
+              <Text style={styles.section}>Current Connection</Text>
+              <Text style={styles.viewAll} onPress={() => navigation.navigate('Connections', { tab: 'active' })} accessibilityRole="link">View all</Text>
+            </View>
+            {cc ? (
+              <Card onPress={() => navigation.navigate('ProfileDetail', { personId: cc.id })} accessibilityLabel={`View ${cc.name}'s profile`}>
+                <View style={styles.row}>
+                  <Avatar size={84} shape="rounded" uri={cc.photo} online={cc.online} label={cc.name} />
+                  <View style={{ flex: 1, marginLeft: spacing.lg }}>
+                    <View style={styles.tag}><Text style={styles.tagText}>{STAGE_LABELS[cc.stage]}</Text></View>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.cardName}>{cc.name}, {cc.age}</Text>
+                      {cc.verified && <Ionicons name="checkmark-circle" size={16} color={colors.primary} style={{ marginLeft: 4 }} />}
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Ionicons name="location-outline" size={13} color={colors.muted} />
+                      <Text style={styles.info}>{cc.location}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <Ionicons name="briefcase-outline" size={13} color={colors.muted} />
+                      <Text style={styles.info}>{cc.profession}</Text>
+                    </View>
+                    <Button title="Continue" arrow small style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }} onPress={() => navigation.navigate('Journey')} />
+                  </View>
+                </View>
+              </Card>
+            ) : (
+              <Card><EmptyState icon="people-outline" title="No active connection yet" description="Accept a request or send interest to begin your journey." actionLabel="Find people" onAction={() => navigation.navigate('Connections')} /></Card>
+            )}
+
+            {/* Needs Your Attention */}
+            <View style={[styles.sectionRow, styles.gap]}>
               <Text style={styles.section}>Needs Your Attention</Text>
               {data.attention.length > 0 && (
-                <Text style={styles.viewAll} onPress={() => navigation.navigate('Connections', { tab: 'requests' })} accessibilityRole="link">View all →</Text>
+                <Text style={styles.viewAll} onPress={() => navigation.navigate('Connections', { tab: 'requests' })} accessibilityRole="link">View all</Text>
               )}
             </View>
             {data.attention.length === 0 ? (
@@ -84,45 +156,46 @@ export default function HomeScreen({ navigation }: any) {
               </Card>
             )}
 
-            {/* Current Connection */}
-            <Text style={[styles.section, styles.gap]}>Current Connection</Text>
-            {cc ? (
-              <Card>
-                <View style={styles.row}>
-                  <Avatar size={64} online={cc.online} verified={cc.verified} />
-                  <View style={{ flex: 1, marginLeft: spacing.lg }}>
-                    <Text style={styles.cardName}>{cc.name}, {cc.age}</Text>
-                    <Text style={styles.muted}>{cc.location}</Text>
-                    <Text style={styles.muted}>{cc.profession}</Text>
-                  </View>
-                </View>
-                <Button title="Continue" arrow style={{ marginTop: spacing.lg }} onPress={() => navigation.navigate('Journey')} />
-              </Card>
-            ) : (
-              <Card><EmptyState icon="people-outline" title="No active connection yet" description="Accept a request or send interest to begin your journey." actionLabel="Find people" onAction={() => navigation.navigate('Connections')} /></Card>
-            )}
-
             {/* Your Journey */}
             <View style={[styles.sectionRow, styles.gap]}>
               <Text style={styles.section}>Your Journey</Text>
               <Text style={styles.viewAll} onPress={() => navigation.navigate('Journey')} accessibilityRole="link">View details →</Text>
             </View>
             <Card>
-              <MiniStepper stages={data.stages} />
-              <Text style={[styles.muted, { marginTop: spacing.md }]}>
-                {active ? `Stage ${data.stages.indexOf(active) + 1} of 8: ${STAGE_LABELS[active.key as keyof typeof STAGE_LABELS]}` : 'Journey not started'}
-              </Text>
+              <MiniStepper stages={labelledStages} />
+              <View style={styles.callout}>
+                {blurb ? (
+                  <>
+                    <Text style={styles.calloutTitle}>{blurb.title}</Text>
+                    <Text style={styles.muted}>{blurb.desc}</Text>
+                  </>
+                ) : (
+                  <Text style={styles.muted}>Journey not started</Text>
+                )}
+              </View>
             </Card>
 
             {/* Setu Guide promo */}
             <Card style={[styles.guide, styles.gap]}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.cardName}>Setu Guide</Text>
-                <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Conversation ideas, tips and help at every step of your journey.</Text>
-                <Button title="Ask Setu Guide" small variant="outline" onPress={() => navigation.navigate('Journey')} style={{ alignSelf: 'flex-start' }} />
-                  <Button title="Ask Setu Guide" small variant="outline" onPress={() => navigation.navigate('Guide')} style={{ alignSelf: 'flex-start' }} />
+                <Text style={styles.cardName}>Need help with your next step?</Text>
+                <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Get personalised guidance on conversations, family involvement and next steps.</Text>
+                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('Guide')} style={{ alignSelf: 'flex-start' }} />
               </View>
-              <View style={styles.guideArt}><Ionicons name="sparkles" size={36} color={colors.primary} /></View>
+              <View style={styles.art}><Ionicons name="sparkles" size={36} color={colors.primary} /></View>
+            </Card>
+
+            {/* Discover */}
+            <Card style={[styles.discover, styles.gap]}>
+              <View style={{ flex: 1 }}>
+                <View style={styles.infoRow}>
+                  <Ionicons name="compass-outline" size={18} color={colors.primary} />
+                  <Text style={[styles.cardName, { marginLeft: spacing.sm }]}>Discover</Text>
+                </View>
+                <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Meet people who share your values, goals and future hopes.</Text>
+                <Text style={styles.viewAll} onPress={() => navigation.navigate('Connections')} accessibilityRole="link">Find meaningful connections →</Text>
+              </View>
+              <View style={styles.art}><Ionicons name="people" size={34} color={colors.primary} /></View>
             </Card>
           </>
         )}
@@ -135,13 +208,16 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xl },
-  greet: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted },
-  name: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  bell: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  greet: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
+  name: { fontFamily: fonts.display, fontSize: 22, color: colors.primary },
+  tagline: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted, marginTop: 4 },
+  bell: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: spacing.sm },
   badge: { position: 'absolute', top: 10, right: 11, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.danger, borderWidth: 1.5, borderColor: colors.bg },
+  banner: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.danger, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, marginBottom: spacing.lg },
+  bannerText: { fontFamily: fonts.medium, fontSize: 13, color: colors.danger },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
-  section: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text, marginBottom: spacing.md },
-  viewAll: { fontFamily: fonts.medium, fontSize: 13, color: colors.primary, paddingVertical: 8, marginBottom: spacing.md },
+  section: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
+  viewAll: { fontFamily: fonts.medium, fontSize: 13, color: colors.primary, paddingVertical: 8 },
   gap: { marginTop: spacing.xl },
   attn: { flexDirection: 'row', alignItems: 'center', minHeight: 64 },
   attnBorder: { borderTopWidth: 1, borderTopColor: colors.border },
@@ -149,7 +225,15 @@ const styles = StyleSheet.create({
   attnTitle: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
   muted: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted },
   row: { flexDirection: 'row', alignItems: 'center' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  info: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted },
+  tag: { alignSelf: 'flex-start', backgroundColor: colors.primarySoft, borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  tagText: { fontFamily: fonts.medium, fontSize: 11, color: colors.primary },
   cardName: { fontFamily: fonts.semibold, fontSize: 17, color: colors.text },
+  callout: { backgroundColor: colors.primarySoft, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.lg },
+  calloutTitle: { fontFamily: fonts.semibold, fontSize: 14, color: colors.primary, marginBottom: 2 },
   guide: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primarySoft },
-  guideArt: { width: 72, height: 72, borderRadius: radius.lg, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginLeft: spacing.md },
+  discover: { flexDirection: 'row', alignItems: 'center' },
+  art: { width: 72, height: 72, borderRadius: radius.lg, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginLeft: spacing.md },
 });

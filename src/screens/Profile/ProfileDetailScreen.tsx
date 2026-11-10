@@ -3,18 +3,50 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../components/Card';
+import EmptyState from '../../components/EmptyState';
 import ScreenHeader from '../../components/ScreenHeader';
-import { PREFERENCE_SECTIONS, PROFILES, Section } from '../../services/profileData';
+import { useOwnProfile } from '../../services/ownProfile';
+import { PREFERENCE_SECTIONS, PROFILES, Profile, Section } from '../../services/profileData';
+import { store } from '../../services/mockData';
 import { colors, fonts, spacing } from '../../theme';
 
 const TABS = ['About', 'Lifestyle', 'Family', 'Preferences'] as const;
 
+// Match profiles: use the detailed mock if we have one (e.g. Rohan), otherwise build a basic
+// profile from the person's list entry. Replace with the real API call when the backend is ready.
+function findMatch(id?: string): Profile | null {
+  if (!id) return null;
+  if (PROFILES[id]) return PROFILES[id];
+  const p = [...store.active, ...store.received, ...store.sent, ...store.discover].find((x) => x.id === id);
+  if (!p) return null;
+  return {
+    name: p.name, age: p.age, gender: '', height: '', education: '', profession: p.profession, location: p.location, bio: '',
+    about: [{ title: 'Basics', rows: [
+      { icon: 'location-outline', label: 'City', value: p.location },
+      { icon: 'briefcase-outline', label: 'Profession', value: p.profession },
+    ] }],
+    lifestyle: [], family: [],
+  };
+}
+
 export default function ProfileDetailScreen({ navigation, route }: any) {
-  const mode: 'own' | 'match' = route.params?.mode ?? 'own';
-  const profile = PROFILES[route.params?.profileId ?? 'u_aanya'];
+  const params = route.params ?? {};
+  // Opened from Connections with { personId } = a match. Opened from My Profile = own.
+  const mode: 'own' | 'match' = params.mode ?? (params.personId ? 'match' : 'own');
+  const own = useOwnProfile();
+  const profile: Profile | null = mode === 'own' ? own : findMatch(params.personId ?? params.profileId);
   const [tab, setTab] = useState<(typeof TABS)[number]>('About');
   const editable = mode === 'own';
   const edit = (what: string) => () => Alert.alert(what, 'Editing is a stretch goal and is not built yet.');
+
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="Profile" onBack={() => navigation.goBack()} />
+        <EmptyState icon="person-outline" title="Profile not found" description="This profile isn't available right now." actionLabel="Go back" onAction={() => navigation.goBack()} />
+      </SafeAreaView>
+    );
+  }
 
   const renderSection = (s: Section) => (
     <Card key={s.title} style={{ marginBottom: spacing.md }}>
@@ -36,9 +68,18 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
     </Card>
   );
 
+  const renderTab = (sections: Section[]) =>
+    sections.length > 0 ? sections.map(renderSection) : (
+      <EmptyState
+        icon="document-text-outline"
+        title={editable ? 'Nothing added yet' : 'Nothing shared yet'}
+        description={editable ? 'Answer more questions in the profile builder to fill this in.' : "They haven't shared anything here yet."}
+      />
+    );
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScreenHeader title={`${profile.name}, ${profile.age}`} onBack={() => navigation.goBack()} />
+      <ScreenHeader title={profile.age ? `${profile.name}, ${profile.age}` : profile.name} onBack={() => navigation.goBack()} />
       <View style={styles.tabs} accessibilityRole="tablist">
         {TABS.map((t) => (
           <Pressable key={t} style={[styles.tab, tab === t && styles.tabOn]} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }}>
@@ -48,9 +89,19 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
-        {tab === 'About' && profile.about.map(renderSection)}
-        {tab === 'Lifestyle' && profile.lifestyle.map(renderSection)}
-        {tab === 'Family' && profile.family.map(renderSection)}
+        {tab === 'About' && (
+          <>
+            {!!profile.bio && (
+              <Card style={{ marginBottom: spacing.md }}>
+                <Text style={styles.sectionTitle}>About me</Text>
+                <Text style={[styles.muted, { marginTop: spacing.sm, lineHeight: 19 }]}>{profile.bio}</Text>
+              </Card>
+            )}
+            {renderTab(profile.about)}
+          </>
+        )}
+        {tab === 'Lifestyle' && renderTab(profile.lifestyle)}
+        {tab === 'Family' && renderTab(profile.family)}
         {tab === 'Preferences' && (
           <>
             <Text style={styles.sectionTitle}>{editable ? 'My Partner Preferences' : `${profile.name}'s Partner Preferences`}</Text>

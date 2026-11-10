@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
@@ -68,7 +68,8 @@ export default function ChatThreadScreen({ navigation, route }: any) {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* 'padding' on BOTH platforms: Android draws edge to edge, so the OS no longer lifts the input above the keyboard */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         {error && msgs.length === 0 ? (
           <EmptyState icon="cloud-offline-outline" title="Couldn't load messages" actionLabel="Try again" onAction={refresh} />
         ) : (
