@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
 import BottomTabBar from './BottomTabBar';
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
+import ReflectResultsScreen from '../screens/Journey/ReflectResultsScreen';
 import CreateAccountScreen from '../screens/Auth/CreateAccountScreen';
 import VerifyOtpScreen from '../screens/Auth/VerifyOtpScreen';
 import OnboardingBasicsScreen from '../screens/Auth/OnboardingBasicsScreen';
@@ -15,20 +16,22 @@ import OnboardingLanguagesScreen from '../screens/Auth/OnboardingLanguagesScreen
 import OnboardingPhotoScreen from '../screens/Auth/OnboardingPhotoScreen';
 import OnboardingSuccessScreen, { OPEN_BUILDER_KEY } from '../screens/Auth/OnboardingSuccessScreen';
 import ProfileBuilderScreen from '../screens/ProfileBuilder/ProfileBuilderScreen';
+import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import HomeScreen from '../screens/Tabs/HomeScreen';
 import ConnectionsScreen from '../screens/Tabs/ConnectionsScreen';
 import JourneyScreen from '../screens/Journey/JourneyScreen';
 import StageScreen from '../screens/Journey/StageScreen';
 import ReflectIntroScreen from '../screens/Journey/ReflectIntroScreen';
 import ReflectPrivacyScreen from '../screens/Journey/ReflectPrivacyScreen';
+import ChatThreadScreen from '../screens/Chat/ChatThreadScreen';
+import ChatProfileScreen from '../screens/Chat/ChatProfileScreen';
 import ReflectQuestionScreen from '../screens/Journey/ReflectQuestionScreen';
 import ReflectDoneScreen from '../screens/Journey/ReflectDoneScreen';
-import GuideScreen from '../screens/Guide/GuideScreen';
 import GuideChatScreen from '../screens/Guide/GuideChatScreen';
 import ChatsScreen from '../screens/Chats/ChatsScreen';
-import ChatThreadScreen from '../screens/Chats/ChatThreadScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import ProfileDetailScreen from '../screens/Profile/ProfileDetailScreen';
+import EditProfileScreen from '../screens/Profile/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -75,15 +78,19 @@ export default function RootNavigator() {
         <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={startRoute ?? 'Main'}>
           <Stack.Screen name="Main" component={MainTabs} />
           <Stack.Screen name="ProfileBuilder" component={ProfileBuilderScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Stage" component={StageScreen} />
           <Stack.Screen name="ReflectIntro" component={ReflectIntroScreen} />
           <Stack.Screen name="ReflectPrivacy" component={ReflectPrivacyScreen} />
           <Stack.Screen name="ReflectQuestion" component={ReflectQuestionScreen} />
           <Stack.Screen name="ReflectDone" component={ReflectDoneScreen} />
-          <Stack.Screen name="Guide" component={GuideScreen} />
+          <Stack.Screen name="ReflectResults" component={ReflectResultsScreen} />
+          <Stack.Screen name="Guide" component={GuideChatScreen} />
+          {/* alias: some screens navigate to 'GuideChat'. Remove once every call uses 'Guide'. */}
           <Stack.Screen name="GuideChat" component={GuideChatScreen} />
           <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
           <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </Stack.Navigator>
       ) : (
         // Signed out: Welcome -> phone -> OTP -> onboarding. The app always starts on Welcome.
@@ -93,6 +100,8 @@ export default function RootNavigator() {
           <Stack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
           <Stack.Screen name="OnboardingBasics" component={OnboardingBasicsScreen} />
           <Stack.Screen name="OnboardingLanguages" component={OnboardingLanguagesScreen} />
+          <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
+<Stack.Screen name="ChatProfile" component={ChatProfileScreen} />
           <Stack.Screen name="OnboardingPhoto" component={OnboardingPhotoScreen} />
           <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
         </Stack.Navigator>

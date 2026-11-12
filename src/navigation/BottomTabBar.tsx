@@ -5,27 +5,43 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, shadow } from '../theme';
 
-// Order and icons match Figma. Centre = Journey / Setu Guide (infinity), visually emphasised.
+// What the centre (infinity) button does:
+//   false = opens the Journey hub (stages, "Ask Setu Guide" button inside)
+//   true  = opens the Setu Guide chat directly
+const CENTER_OPENS_CHAT = true;
+
+const CENTER = { icon: 'infinity', label: 'Setu Guide', center: true };
+
 const TABS: Record<string, { icon: string; label: string; center?: boolean }> = {
   Home: { icon: 'home', label: 'Home' },
   Connections: { icon: 'people-outline', label: 'Connections' },
-  Journey: { icon: 'infinity', label: 'Journey and Setu Guide', center: true },
+  Journey: CENTER, // your navigator names the centre tab Journey
+  Guide: CENTER,
   Chats: { icon: 'chatbubble-ellipses-outline', label: 'Chats' },
   Profile: { icon: 'person-outline', label: 'Profile' },
 };
 
 export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+
   return (
     <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       <View style={[styles.bar, shadow.card]}>
         {state.routes.map((route, index) => {
           const cfg = TABS[route.name];
+          if (!cfg) return null; // unknown route: skipped instead of crashing
           const focused = state.index === index;
+
           const onPress = () => {
+            // centre button: open the chat screen (a stack screen named "Guide")
+            if (cfg.center && CENTER_OPENS_CHAT) {
+              navigation.navigate('Guide' as never);
+              return;
+            }
             const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!focused && !e.defaultPrevented) navigation.navigate(route.name);
           };
+
           const iconColor = focused ? '#fff' : colors.text;
           return (
             <Pressable

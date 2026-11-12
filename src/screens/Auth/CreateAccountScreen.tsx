@@ -5,11 +5,13 @@ import Button from '../../components/Button';
 import PhoneInput from '../../components/PhoneInput';
 import { useAuth } from '../../context/AuthContext';
 import { sendOtp } from '../../services/api';
+import { getGoogleProfile, googleLogin } from '../../services/googleAuth';
 import { colors, fonts, spacing } from '../../theme';
 
 export default function CreateAccountScreen({ navigation }: any) {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn } = useAuth();
   const valid = phone.length === 10;
@@ -25,7 +27,32 @@ export default function CreateAccountScreen({ navigation }: any) {
     setLoading(false);
   };
 
-  // Google / Apple: no real OAuth in this build. Both use dev login so the flow is testable.
+  const onGoogle = async () => {
+    if (googleLoading) return;
+    setGoogleLoading(true); setError('');
+    try {
+      const g = await getGoogleProfile();      // opens the Google account picker
+      if (g) {
+        const session = await googleLogin(g);  // turns it into an app session
+        await signIn(session);                 // the navigator moves to the app after this
+      }
+    } catch (e: any) {
+      if (e?.code === 'GOOGLE_UNAVAILABLE') {
+        // Expo Go (or a missing client ID): keep testing with the old dev login while developing
+        if (__DEV__) {
+          console.log('GOOGLE UNAVAILABLE, using dev login:', e.message);
+          await signIn(await googleLogin({ idToken: 'dev', name: 'Karan', email: 'karan@example.com' }));
+        } else {
+          setError('Google sign-in is not available right now. Use your mobile number instead.');
+        }
+      } else {
+        console.log('GOOGLE SIGN-IN FAILED', e);
+        setError("Couldn't sign in with Google. Try again.");
+      }
+    }
+    setGoogleLoading(false);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <Text style={styles.brand}>Sambandh Setu</Text>
@@ -48,8 +75,9 @@ export default function CreateAccountScreen({ navigation }: any) {
         <View style={styles.line} /><Text style={styles.or}>or</Text><View style={styles.line} />
       </View>
 
-      <Button variant="outline" title="Continue with Google" onPress={() => signIn()} style={styles.social} />
-<Button variant="outline" title="Continue with Apple" onPress={() => signIn()} style={[styles.social, { marginTop: spacing.md }]} />
+      <Button variant="outline" title="Continue with Google" loading={googleLoading} onPress={onGoogle} style={styles.social} />
+      {/* Apple: no real sign-in yet. Uses the dev login so the flow stays testable. */}
+      <Button variant="outline" title="Continue with Apple" onPress={() => signIn()} style={[styles.social, { marginTop: spacing.md }]} />
       <Text style={styles.terms}>
         By continuing, you agree to our <Text style={styles.link}>Terms of Service</Text> and <Text style={styles.link}>Privacy Policy</Text>.
       </Text>

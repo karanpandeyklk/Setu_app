@@ -1,54 +1,43 @@
-import React, { useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
-type Props = {
-  uri?: string;
-  size?: number;
-  online?: boolean;   // true = green dot, false = grey dot, undefined = no dot
-  verified?: boolean;
-  shape?: 'circle' | 'rounded';
-  label?: string;     // read by screen readers, e.g. the person's name
-};
+type Props = { uri?: string; name?: string; size?: number; online?: boolean; verified?: boolean };
 
-export default function Avatar({ uri, size = 48, online, verified, shape = 'circle', label }: Props) {
-  const [failed, setFailed] = useState(false); // photo URL broke, so show the fallback
-  const radius = shape === 'rounded' ? size * 0.22 : size / 2;
-  const dot = size * 0.26;
-  const dotOffset = shape === 'rounded' ? size * 0.06 : 0;
+// soft background and text colors, picked from the person's name so each person looks different
+const PALETTE = [
+  { bg: '#DBEAFE', fg: '#1D4ED8' }, { bg: '#DCFCE7', fg: '#15803D' }, { bg: '#FEF3C7', fg: '#B45309' },
+  { bg: '#FCE7F3', fg: '#BE185D' }, { bg: '#EDE9FE', fg: '#6D28D9' }, { bg: '#CCFBF1', fg: '#0F766E' },
+];
+const pick = (name: string) => PALETTE[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % PALETTE.length];
+
+// Photo if there is one, otherwise the initial letter, otherwise a generic icon
+export default function Avatar({ uri, name, size = 48, online, verified }: Props) {
+  const initial = name?.trim().charAt(0).toUpperCase();
+  const tone = name ? pick(name) : { bg: colors.primarySoft, fg: colors.primary };
 
   return (
-    <View
-      style={{ width: size, height: size }}
-      accessible={!!label}
-      accessibilityRole={label ? 'image' : undefined}
-      accessibilityLabel={label}
-    >
-      {uri && !failed ? (
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: radius }} onError={() => setFailed(true)} />
+    <View style={{ width: size, height: size }}>
+      {uri ? (
+        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
       ) : (
-        <View style={[styles.fallback, { width: size, height: size, borderRadius: radius }]}>
-          <Ionicons name="person" size={size * 0.5} color={colors.primary} />
+        <View style={[styles.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: tone.bg }]}>
+          {initial ? (
+            <Text style={{ fontFamily: fonts.semibold, fontSize: size * 0.42, color: tone.fg }}>{initial}</Text>
+          ) : (
+            <Ionicons name="person" size={size * 0.5} color={tone.fg} />
+          )}
         </View>
       )}
-      {online !== undefined && (
-        <View
-          style={[
-            styles.dot,
-            { width: dot, height: dot, borderRadius: dot / 2, right: dotOffset, bottom: dotOffset, backgroundColor: online ? colors.success : colors.muted },
-          ]}
-        />
-      )}
-      {verified && (
-        <Ionicons name="checkmark-circle" size={size * 0.3} color={colors.primary} style={styles.verified} />
-      )}
+      {online && <View style={[styles.online, { width: size * 0.26, height: size * 0.26, borderRadius: size * 0.13 }]} />}
+      {verified && <Ionicons name="checkmark-circle" size={size * 0.3} color={colors.primary} style={styles.verified} />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fallback: { backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', borderWidth: 2, borderColor: '#fff' },
+  fallback: { alignItems: 'center', justifyContent: 'center' },
+  online: { position: 'absolute', right: 0, bottom: 0, backgroundColor: colors.success, borderWidth: 2, borderColor: '#fff' },
   verified: { position: 'absolute', right: -2, top: -2, backgroundColor: '#fff', borderRadius: 10 },
 });

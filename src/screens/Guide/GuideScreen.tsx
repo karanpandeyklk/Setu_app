@@ -51,7 +51,8 @@ export default function GuideScreen({ navigation }: any) {
   const labelledStages = data?.stages.map((s) => ({ ...s, label: STAGE_LABELS[s.key as StageKey] })) ?? [];
 
   const openChat = (intent?: string) => navigation.navigate('GuideChat', intent ? { intent } : undefined);
-  const goJourney = () => navigation.navigate('Main', { screen: 'Journey' });
+  // Journey is now a screen on the root stack (pushed from this hub), not a tab.
+  const goJourney = () => navigation.navigate('Journey');
 
   const TILES = [
     { key: 'understand', title: 'Understand', desc: 'Learn about each other, values and lifestyle.', icon: 'book-outline', color: colors.primary, tint: '#E8F0FF', onPress: () => openChat('help_me_understand') },
@@ -63,15 +64,18 @@ export default function GuideScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header: tab root, so no back arrow */}
         <View style={styles.header}>
-          <Pressable onPress={() => navigation.goBack()} style={styles.icon} accessibilityRole="button" accessibilityLabel="Back">
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Setu Guide</Text>
             <Text style={styles.sub}>Your companion for a thoughtful and meaningful journey.</Text>
           </View>
-          <Pressable style={styles.icon} accessibilityRole="button" accessibilityLabel="Notifications">
+          <Pressable
+            style={styles.icon}
+            onPress={() => navigation.navigate('Notifications')}
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
+          >
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
           </Pressable>
         </View>

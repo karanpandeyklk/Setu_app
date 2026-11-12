@@ -4,7 +4,7 @@ import { delay } from './mockData';
 // ---------- Setu Guide (app -> POST /guide/chat on OUR backend, never the AI service) ----------
 export type Intent = 'conversation_ideas' | 'help_me_understand' | 'next_steps' | 'privacy_safety';
 export type GuideReply = {
-  intent?: Intent; reply: string; questions?: string[]; chips?: string[];
+  intent?: Intent; reply: string; questions?: string[]; topic?: string; chips?: string[];
   sources?: string[]; safety?: string | null; fallback_used?: boolean;
 };
 
@@ -48,16 +48,38 @@ export async function askGuide(p: { intent?: Intent; message?: string; topic?: s
 function mockGuide(p: { intent?: Intent; message?: string }): GuideReply {
   switch (p.intent) {
     case 'conversation_ideas':
-      return { intent: p.intent, reply: 'Here are a few relaxed questions for Lifestyle & Daily Routine. Pick one that feels natural.',
-        questions: ['What does a perfect weekend look like for you?', 'How do you usually start your mornings?', 'What is one habit you are proud of?'] };
+      return {
+        intent: p.intent,
+        reply: 'Of course! Here are some questions you can explore. You can choose the ones that feel right for your conversation. 😊',
+        topic: 'Lifestyle & Daily Routine',
+        questions: [
+          'What does a typical day look like for you?',
+          'How do you like to spend your weekends?',
+          'What kind of work environment do you prefer?',
+          'How do you maintain work-life balance?',
+          'Are there any hobbies or interests that are important to you?',
+          'What does a relaxing evening look like for you?',
+          'How do you usually plan your week?',
+          'What is one habit you are proud of?',
+        ],
+      };
     case 'help_me_understand':
-      return { intent: p.intent, reply: 'At the Understand stage, the goal is to learn how each other thinks and lives. There are no right answers. Listen first, then share your own view.' };
+      return {
+        intent: p.intent,
+        reply: 'Happy to help. Tell me what you would like to understand better and I will explain it simply.',
+      };
     case 'next_steps':
-      return { intent: p.intent, reply: 'A good next step is to finish the Reflect questions at your own pace. Then you can decide what to share with your match.' };
+      return {
+        intent: p.intent,
+        reply: 'A good next step is to keep the conversation relaxed and share a little more about yourself.',
+      };
     case 'privacy_safety':
-      return { intent: p.intent, reply: 'Your answers are private by default. Only the answers you choose to share are visible to your match. Setu Guide never sees your private answers.', safety: 'Never share bank details or contact information before you feel safe.' };
+      return {
+        intent: p.intent,
+        reply: 'Keep personal details like your address and finances private until you feel comfortable and have built trust.',
+      };
     default:
-      return { reply: `Thanks for sharing. Could you tell me more about what you'd like help with?`, chips: ['Conversation ideas', 'Tips for next steps'] };
+      return { reply: 'Thanks for your message. How can I help with your conversation?' };
   }
 }
 

@@ -9,6 +9,7 @@ import { useCallback, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
+import { getMyProfile } from './myProfile';
 import type { Profile, Section } from './profileData';
 
 export const PROFILE_KEY = 'setu_profile';
@@ -48,16 +49,25 @@ export function buildOwnProfile(name: string, saved: Bag, a: Bag): OwnProfile {
     name,
     age: ageFrom(dob) ?? 0,
     gender: asText(saved.gender),
-    height: '',
-    education: '',
-    profession: '',
-    location: '',
-    bio: asText(a.about),
+    height: asText(saved.height),
+    education: asText(saved.education),
+    profession: asText(saved.profession),
+    location: asText(saved.location),
+    // Edit Profile wins; otherwise use the last builder step ("Tell people a little about yourself")
+    bio: typeof saved.bio === 'string' ? saved.bio : asText(a.about),
     photoUri: saved.photoUri || undefined,
-    about: section('Personal Details', [
-      ['person-outline', 'Name', name],
-      ['language-outline', 'Languages', languages],
-    ]),
+    about: [
+      ...section('Personal Details', [
+        ['person-outline', 'Name', name],
+        ['location-outline', 'City', asText(saved.location)],
+        ['resize-outline', 'Height', asText(saved.height)],
+        ['language-outline', 'Languages', languages],
+      ]),
+      ...section('Education & Career', [
+        ['school-outline', 'Education', asText(saved.education)],
+        ['briefcase-outline', 'Profession', asText(saved.profession)],
+      ]),
+    ],
     lifestyle: section('Lifestyle & Interests', [
       ['heart-outline', 'Interests', asText(a.interests)],
       ['cafe-outline', 'Lifestyle', pick(a, 'lifestyle')],
@@ -80,8 +90,14 @@ export function useOwnProfile(): OwnProfile {
       let alive = true;
       (async () => {
         try {
-          const [p, a] = await Promise.all([AsyncStorage.getItem(PROFILE_KEY), AsyncStorage.getItem(BUILDER_ANSWERS_KEY)]);
-          const saved: Bag = p ? JSON.parse(p) : {};
+          const [p, a, my] = await Promise.all([
+            AsyncStorage.getItem(PROFILE_KEY),
+            AsyncStorage.getItem(BUILDER_ANSWERS_KEY),
+            getMyProfile().catch(() => null), // what Edit Profile saved
+          ]);
+          // values saved by Edit Profile override the ones from sign-up
+          const edited = Object.fromEntries(Object.entries((my ?? {}) as Bag).filter(([, v]) => v !== undefined && v !== null));
+          const saved: Bag = { ...(p ? JSON.parse(p) : {}), ...edited };
           const answers: Bag = a ? JSON.parse(a) : {};
           if (alive) setProfile(buildOwnProfile(user?.name || saved.name || '', saved, answers));
         } catch {

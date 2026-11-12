@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '../../components/Button';
 import OnboardingHeader from '../../components/OnboardingHeader';
+import { useAuth } from '../../context/AuthContext';
 import { colors, fonts, spacing } from '../../theme';
 
 export default function OnboardingPhotoScreen({ navigation, route }: any) {
+  const { updateAvatar } = useAuth();
   const [uri, setUri] = useState<string | undefined>();
   const [error, setError] = useState('');
+  const busy = useRef(false); // stops a double tap from saving twice
 
   const pick = async () => {
     setError('');
@@ -21,7 +24,21 @@ export default function OnboardingPhotoScreen({ navigation, route }: any) {
     }
   };
 
-  const next = () => navigation.navigate('OnboardingSuccess', { ...route.params, photoUri: uri });
+  const next = async () => {
+    if (busy.current) return;
+    busy.current = true;
+    try {
+      // Save the photo permanently and attach it to the user, so Home and Profile can show it.
+      // If the user isn't signed in yet, it is held and attached when they sign in.
+      if (uri) await updateAvatar(uri);
+    } catch (e) {
+      console.log('SAVE AVATAR FAILED', e);
+    }
+    busy.current = false;
+    navigation.navigate('OnboardingSuccess', { ...route.params, photoUri: uri });
+  };
+
+  const skip = () => navigation.navigate('OnboardingSuccess', { ...route.params, photoUri: undefined });
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -50,7 +67,7 @@ export default function OnboardingPhotoScreen({ navigation, route }: any) {
       </View>
 
       <Button title="Continue" arrow onPress={next} />
-      {!uri && <Button title="Skip for now" variant="text" onPress={next} />}
+      {!uri && <Button title="Skip for now" variant="text" onPress={skip} />}
     </SafeAreaView>
   );
 }

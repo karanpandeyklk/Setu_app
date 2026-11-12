@@ -57,10 +57,7 @@ export default function ChatsScreen({ navigation }: any) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Chat</Text>
-          <Text style={styles.subtitle}>Meaningful conversations for a brighter tomorrow.</Text>
-        </View>
+        <Text style={styles.title}>Chats</Text>
         <Pressable
           style={styles.icon}
           onPress={() => { setSearching(!searching); setQuery(''); }}
@@ -69,7 +66,7 @@ export default function ChatsScreen({ navigation }: any) {
         >
           <Ionicons name={searching ? 'close-outline' : 'search-outline'} size={22} color={colors.text} />
         </Pressable>
-        <Pressable style={styles.icon} accessibilityRole="button" accessibilityLabel="Notifications">
+        <Pressable style={styles.icon} onPress={() => navigation.navigate('Notifications')} accessibilityRole="button" accessibilityLabel="Notifications">
           <Ionicons name="notifications-outline" size={22} color={colors.text} />
         </Pressable>
       </View>
@@ -131,9 +128,8 @@ export default function ChatsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.sm, minHeight: 64 },
-  title: { fontFamily: fonts.display, fontSize: 24, color: colors.text },
-  subtitle: { fontFamily: fonts.regular, fontSize: 12, color: colors.muted, marginTop: 2 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.sm, minHeight: 56 },
+  title: { flex: 1, fontFamily: fonts.display, fontSize: 24, color: colors.text },
   icon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   search: { marginHorizontal: spacing.lg, minHeight: 44, backgroundColor: '#fff', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.lg, fontFamily: fonts.regular, fontSize: 14, color: colors.text },
   filters: { flexDirection: 'row', gap: spacing.sm, padding: spacing.lg },

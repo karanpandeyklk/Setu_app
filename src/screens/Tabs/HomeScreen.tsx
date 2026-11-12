@@ -3,9 +3,12 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
+import { getUnreadCount } from '../../services/notificationsApi';
+import { getMyProfile, saveMyProfile } from '../../services/myProfile';
 import Card from '../../components/Card';
 import EmptyState from '../../components/EmptyState';
 import Skeleton from '../../components/Skeleton';
@@ -17,6 +20,14 @@ import { colors, fonts, radius, spacing } from '../../theme';
 function greeting() {
   const h = new Date().getHours();
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+
+// Photos may be stored under different field names depending on where the data came from.
+// This tries the common ones so a renamed field doesn't leave the avatar blank.
+function pickPhoto(obj: any): string | undefined {
+  if (!obj) return undefined;
+  const v = obj.avatar ?? obj.photo ?? obj.photoUrl ?? obj.photoURI ?? obj.profilePhoto ?? obj.profilePic ?? obj.image ?? obj.picture;
+  return typeof v === 'string' && v.trim() ? v : undefined;
 }
 
 // Short message under the journey stepper. Placeholder wording: confirm the final copy with design.
@@ -32,11 +43,13 @@ const STAGE_BLURBS: Record<StageKey, { title: string; desc: string }> = {
 };
 
 export default function HomeScreen({ navigation }: any) {
-  const { user } = useAuth();
+  const { user, updateAvatar } = useAuth();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unread, setUnread] = useState(0);
   const [error, setError] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | undefined>(); // photo saved by Edit Profile
   const reqId = useRef(0); // ignore responses from older requests
 
   const load = useCallback(async (pull = false) => {
@@ -56,13 +69,44 @@ export default function HomeScreen({ navigation }: any) {
   }, []);
 
   // reload every time the tab is shown, so Home always matches Connections and Journey
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => {
+    getUnreadCount().then(setUnread);
+    getMyProfile().then((p) => setProfilePhoto(p?.photoUri)).catch(() => {}); // picks up a photo changed in Edit Profile
+    load();
+  }, [load]));
 
   const firstName = (user?.name || data?.userName || '').split(' ')[0];
   const cc = data?.currentConnection;
   const active = data?.stages.find((s) => s.status === 'active');
   const blurb = active ? STAGE_BLURBS[active.key as StageKey] : null;
   const labelledStages = data?.stages.map((s) => ({ ...s, label: STAGE_LABELS[s.key as StageKey] })) ?? [];
+
+  const myPhoto = pickPhoto(user) ?? profilePhoto ?? pickPhoto(data);
+  const ccPhoto = pickPhoto(cc);
+
+  // Tap your own avatar (top right) to choose or change your photo.
+  const changePhoto = async () => {
+    try {
+      const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
+      if (!r.canceled) {
+        const saved = await updateAvatar(r.assets[0].uri);
+        setProfilePhoto(saved);
+        // keep the Profile page's saved photo the same as the one shown here
+        try {
+          const p = await getMyProfile();
+          if (p) await saveMyProfile({ ...p, photoUri: saved });
+        } catch {}
+      }
+    } catch (e) {
+      console.log('CHANGE PHOTO FAILED', e);
+    }
+  };
+
+  // TEMP DEBUG: shows which fields really exist. Remove once photos show up.
+  if (__DEV__) {
+    console.log('HOME USER KEYS', Object.keys(user ?? {}), 'photo:', myPhoto ?? '(none)');
+    console.log('HOME CONNECTION KEYS', Object.keys(cc ?? {}), 'photo:', ccPhoto ?? '(none)');
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -74,15 +118,13 @@ export default function HomeScreen({ navigation }: any) {
             </Text>
             <Text style={styles.tagline}>Wishing you meaningful conversations and new possibilities ahead.</Text>
           </View>
-          <Pressable
-            style={styles.bell}
-            accessibilityRole="button"
-            accessibilityLabel={data?.unreadNotifications ? 'Notifications, you have unread' : 'Notifications'}
-          >
+          <Pressable style={styles.bell} onPress={() => navigation.navigate('Notifications')} accessibilityRole="button" accessibilityLabel="Notifications">
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
-            {!!data?.unreadNotifications && <View style={styles.badge} />}
+            {unread > 0 && <View style={styles.badge} />}
           </Pressable>
-          <Avatar size={40} uri={user?.avatar} label={user?.name} />
+          <Pressable onPress={changePhoto} accessibilityRole="button" accessibilityLabel="Change profile photo" hitSlop={6}>
+            <Avatar size={40} uri={myPhoto} label={user?.name || firstName || 'Me'} />
+          </Pressable>
         </View>
 
         {loading && !data ? (
@@ -109,7 +151,7 @@ export default function HomeScreen({ navigation }: any) {
             {cc ? (
               <Card onPress={() => navigation.navigate('ProfileDetail', { personId: cc.id })} accessibilityLabel={`View ${cc.name}'s profile`}>
                 <View style={styles.row}>
-                  <Avatar size={84} shape="rounded" uri={cc.photo} online={cc.online} label={cc.name} />
+                  <Avatar size={84} shape="rounded" uri={ccPhoto} online={cc.online} label={cc.name} />
                   <View style={{ flex: 1, marginLeft: spacing.lg }}>
                     <View style={styles.tag}><Text style={styles.tagText}>{STAGE_LABELS[cc.stage]}</Text></View>
                     <View style={styles.nameRow}>
@@ -180,7 +222,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardName}>Need help with your next step?</Text>
                 <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Get personalised guidance on conversations, family involvement and next steps.</Text>
-                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('Guide')} style={{ alignSelf: 'flex-start' }} />
+                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('GuideChat')} style={{ alignSelf: 'flex-start' }} />
               </View>
               <View style={styles.art}><Ionicons name="sparkles" size={36} color={colors.primary} /></View>
             </Card>

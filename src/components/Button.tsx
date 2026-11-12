@@ -11,14 +11,15 @@ type Props = {
   variant?: Variant;
   disabled?: boolean;
   loading?: boolean;
-  arrow?: boolean; // shows the arrow icon like "Get Started"
+  arrow?: boolean; // arrow icon after the title, like "Get Started"
+  icon?: string; // Ionicons name before the title, like "close" or "heart"
   small?: boolean; // compact size for list rows
   style?: ViewStyle;
   accessibilityLabel?: string;
 };
 
 export default function Button({
-  title, onPress, variant = 'primary', disabled, loading, arrow, small, style, accessibilityLabel,
+  title, onPress, variant = 'primary', disabled, loading, arrow, icon, small, style, accessibilityLabel,
 }: Props) {
   const isFilled = variant === 'primary' || variant === 'danger';
   const textColor = isFilled ? '#fff' : colors.primary;
@@ -47,6 +48,7 @@ export default function Button({
         <ActivityIndicator color={textColor} />
       ) : (
         <>
+          {!!icon && <Ionicons name={icon as any} size={small ? 16 : 18} color={textColor} style={{ marginRight: 8 }} />}
           <Text style={[styles.label, small && { fontSize: 13 }, { color: textColor }]}>{title}</Text>
           {arrow && <Ionicons name="arrow-forward" size={18} color={textColor} style={{ marginLeft: 8 }} />}
         </>

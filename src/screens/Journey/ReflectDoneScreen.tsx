@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { colors, fonts, spacing } from '../../theme';
 
-export default function ReflectDoneScreen({ navigation }: any) {
+export default function ReflectDoneScreen({ navigation, route }: any) {
+  const match: string = route.params?.match ?? '';
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
@@ -14,7 +15,8 @@ export default function ReflectDoneScreen({ navigation }: any) {
         <Text style={styles.sub}>Nice work. Discuss is now unlocked, so you can talk through what matters to each of you.</Text>
       </View>
       <View style={{ padding: spacing.lg }}>
-        <Button title="Done" onPress={() => navigation.navigate('Main', { screen: 'Journey' })} />
+        <Button title="View both answers" onPress={() => navigation.navigate('ReflectResults', { match })} />
+        <Button title="Done" variant="outline" onPress={() => navigation.navigate('Main', { screen: 'Journey' })} style={{ marginTop: spacing.md }} />
       </View>
     </SafeAreaView>
   );

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Avatar from '../../components/Avatar';
 import Card from '../../components/Card';
 import EmptyState from '../../components/EmptyState';
 import ScreenHeader from '../../components/ScreenHeader';
-import { useOwnProfile } from '../../services/ownProfile';
-import { PREFERENCE_SECTIONS, PROFILES, Profile, Section } from '../../services/profileData';
+import { useAuth } from '../../context/AuthContext';
 import { store } from '../../services/mockData';
+import { buildOwnProfile, getMyProfile } from '../../services/myProfile';
+import { PREFERENCE_SECTIONS, PROFILES, Profile, Section } from '../../services/profileData';
 import { colors, fonts, spacing } from '../../theme';
 
 const TABS = ['About', 'Lifestyle', 'Family', 'Preferences'] as const;
@@ -33,11 +35,41 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
   const params = route.params ?? {};
   // Opened from Connections with { personId } = a match. Opened from My Profile = own.
   const mode: 'own' | 'match' = params.mode ?? (params.personId ? 'match' : 'own');
-  const own = useOwnProfile();
-  const profile: Profile | null = mode === 'own' ? own : findMatch(params.personId ?? params.profileId);
-  const [tab, setTab] = useState<(typeof TABS)[number]>('About');
   const editable = mode === 'own';
+
+  const { user } = useAuth();
+  const [own, setOwn] = useState<Profile | null>(null);
+  const [ownPhoto, setOwnPhoto] = useState<string | undefined>(); // saved profile photo
+  const [tab, setTab] = useState<(typeof TABS)[number]>('About');
+
+  // Own profile: the seeded Aanya for the Google demo user, otherwise built from the onboarding data
+  useEffect(() => {
+    if (mode !== 'own') return;
+    getMyProfile().then((p) => setOwnPhoto(p?.photoUri)).catch(() => {});
+    if (user?.id === 'u_aanya') setOwn(PROFILES.u_aanya);
+    else buildOwnProfile(user?.name ?? '').then(setOwn);
+  }, [mode, user?.id, user?.name]);
+
+  const matchId = params.personId ?? params.profileId;
+  const profile: Profile | null = mode === 'own' ? own : findMatch(matchId);
+
+  // Same photo as Home and My Profile for your own profile; the person's photo for a match
+  const matchPhoto = [...store.active, ...store.received, ...store.sent, ...store.discover].find((x) => x.id === matchId)?.photo;
+  const photo = mode === 'own' ? (ownPhoto ?? (user as any)?.avatar) : matchPhoto;
+
   const edit = (what: string) => () => Alert.alert(what, 'Editing is a stretch goal and is not built yet.');
+
+  // All hooks are above this line. Early returns come after them.
+  if (mode === 'own' && !own) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScreenHeader title="My Profile" onBack={() => navigation.goBack()} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!profile) {
     return (
@@ -80,6 +112,9 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
   return (
     <SafeAreaView style={styles.safe}>
       <ScreenHeader title={profile.age ? `${profile.name}, ${profile.age}` : profile.name} onBack={() => navigation.goBack()} />
+      <View style={styles.photoRow}>
+        <Avatar size={88} uri={photo} label={profile.name} />
+      </View>
       <View style={styles.tabs} accessibilityRole="tablist">
         {TABS.map((t) => (
           <Pressable key={t} style={[styles.tab, tab === t && styles.tabOn]} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }}>
@@ -127,6 +162,7 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  photoRow: { alignItems: 'center', paddingVertical: spacing.md },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, marginHorizontal: spacing.lg },
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabOn: { borderBottomColor: colors.primary },

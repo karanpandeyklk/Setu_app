@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { buildStages, Connection, delay, Person, ReceivedRequest, SentRequest, store } from './mockData';
+import { buildStages, Connection, delay, NotificationItem, PausedConnection, Person, ReceivedRequest, SentRequest, store } from './mockData';
 
-// Flip USE_MOCK to false and set BASE_URL when Baharath's backend is ready.
+// Flip USE_MOCK to false when Baharath's backend is ready.
 export const USE_MOCK = true;
-export const BASE_URL = 'https://REPLACE-WITH-STAGING-URL'; // lead shares this privately; never commit real URLs or keys
+// Put the real address in a .env file (EXPO_PUBLIC_API_URL=https://...) and keep .env out of Git.
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://REPLACE-WITH-STAGING-URL';
 
 // ---------- Session token ----------
 const TOKEN_KEY = 'setu_session_token';
@@ -13,20 +14,30 @@ export const clearToken = () => AsyncStorage.removeItem(TOKEN_KEY);
 
 export type ApiError = { error: { code: string; message: string; details?: unknown } };
 
+const TIMEOUT_MS = 15000;
+
 // One place for every call. Contract: errors look like { error: { code, message, details } }.
+// A call that takes longer than 15 seconds is cancelled and throws, so screens show their error state.
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw body as ApiError;
-  return body as T;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers ?? {}),
+      },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw body as ApiError;
+    return body as T;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ---------- Auth (v0 contract: POST /auth/dev-login, GET /me) ----------
@@ -109,8 +120,8 @@ export async function getHome(): Promise<HomeData> {
   }
   const current = store.active[0] ?? null;
   return {
-    userName: 'Aanya',
-    unreadNotifications: attention.length,
+    userName: '', // the app shows the signed-in user's own name
+    unreadNotifications: await getUnreadCount(),
     attention,
     currentConnection: current,
     stages: buildStages(current?.stage ?? 'connect'),
@@ -133,6 +144,34 @@ export async function getActive(): Promise<Connection[]> {
   await delay();
   return [...store.active];
 }
+export async function getPaused(): Promise<PausedConnection[]> {
+  if (!USE_MOCK) return request('/connections?status=paused'); // not in the v0 contract: confirm with Bharrath
+  await delay();
+  return [...store.paused];
+}
+export async function getClosed(): Promise<Person[]> {
+  if (!USE_MOCK) return request('/connections?status=closed'); // not in the v0 contract: confirm with Bharrath
+  await delay();
+  return [...store.closed];
+}
+export async function pauseConnection(id: string): Promise<void> {
+  if (!USE_MOCK) return request(`/connections/${id}/pause`, { method: 'POST' });
+  await delay(300);
+  const c = store.active.find((x) => x.id === id);
+  if (!c) return;
+  store.active = store.active.filter((x) => x.id !== id);
+  store.paused.push({ ...c, pausedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) });
+}
+export async function resumeConnection(id: string): Promise<void> {
+  if (!USE_MOCK) return request(`/connections/${id}/resume`, { method: 'POST' });
+  await delay(300);
+  const c = store.paused.find((x) => x.id === id);
+  if (!c) return;
+  store.paused = store.paused.filter((x) => x.id !== id);
+  const { pausedOn, ...rest } = c;
+  store.active.push(rest);
+}
+
 export async function getDiscover(): Promise<Person[]> {
   if (!USE_MOCK) return request('/discover');
   await delay();
@@ -160,7 +199,7 @@ export async function sendInterest(person: Person): Promise<void> {
   if (!USE_MOCK) return request('/requests', { method: 'POST', body: JSON.stringify({ toUserId: person.id }) });
   await delay(300);
   store.discover = store.discover.filter((x) => x.id !== person.id);
-  store.sent.push({ ...person, status: 'Waiting for response' });
+  store.sent.push({ ...person, status: 'Waiting for response', time: 'Just now' });
 }
 export async function skipPerson(person: Person): Promise<void> {
   if (USE_MOCK) {
@@ -180,4 +219,39 @@ export async function toggleBookmark(id: string): Promise<boolean> {
   }
   store.bookmarks = store.bookmarks.includes(id) ? store.bookmarks.filter((b) => b !== id) : [...store.bookmarks, id];
   return store.bookmarks.includes(id);
+}
+
+// ---------- Notifications (not in the v0 contract: confirm with Bharrath) ----------
+// Mock notifications are built from the current requests and connections, so they always match the other screens.
+function buildNotifications(): NotificationItem[] {
+  const items: Omit<NotificationItem, 'unread'>[] = [
+    ...store.received.map((r) => ({
+      id: `n_req_${r.id}`, icon: 'heart-outline', title: `${r.name} showed interest in you`,
+      body: `${r.profession} · ${r.location}`, time: r.time, target: 'requests' as const,
+    })),
+    ...store.active.map((c) => ({
+      id: `n_act_${c.id}`, icon: 'shield-checkmark-outline', title: 'Connection consent pending',
+      body: `Review what you share with ${c.name}`, time: 'Today', target: 'active' as const,
+    })),
+    { id: 'n_guide', icon: 'sparkles-outline', title: 'A tip from Setu Guide', body: 'Try "Conversation ideas" to start a relaxed chat.', time: 'Yesterday', target: 'guide' as const },
+  ];
+  return items.map((n) => ({ ...n, unread: !store.readNotifications.includes(n.id) }));
+}
+
+export async function getNotifications(): Promise<NotificationItem[]> {
+  if (!USE_MOCK) return request('/notifications');
+  await delay();
+  return buildNotifications();
+}
+export async function getUnreadCount(): Promise<number> {
+  if (!USE_MOCK) return (await request<{ count: number }>('/notifications/unread-count')).count;
+  return buildNotifications().filter((n) => n.unread).length;
+}
+export async function markNotificationRead(id: string): Promise<void> {
+  if (!USE_MOCK) return request(`/notifications/${id}/read`, { method: 'POST' });
+  if (!store.readNotifications.includes(id)) store.readNotifications.push(id);
+}
+export async function markAllNotificationsRead(): Promise<void> {
+  if (!USE_MOCK) return request('/notifications/read', { method: 'POST' });
+  store.readNotifications = buildNotifications().map((n) => n.id);
 }
