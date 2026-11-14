@@ -1,4 +1,4 @@
-import { BASE_URL, getToken, request, USE_MOCK } from './api';
+import { BASE_URL, getActive, getToken, request, USE_MOCK } from './api';
 import { delay } from './mockData';
 
 // ---------- Setu Guide (app -> POST /guide/chat on OUR backend, never the AI service) ----------
@@ -20,10 +20,26 @@ const FALLBACK: GuideReply = {
   fallback_used: true,
 };
 
+// Shown when there is no active connection to ask about. The backend needs a connectionId.
+const NO_CONNECTION: GuideReply = {
+  reply: 'Setu Guide works with your active connection. Connect with someone first, and I can help from there.',
+};
+
 let warmedUp = false; // the first call can take about a minute on the free staging service
 
-export async function askGuide(p: { intent?: Intent; message?: string; topic?: string }): Promise<GuideReply> {
+export async function askGuide(p: {
+  connectionId?: string; intent?: Intent; message?: string; topic?: string;
+}): Promise<GuideReply> {
   if (USE_MOCK) { await delay(1000); return mockGuide(p); }
+
+  // connectionId lets the backend check that this user belongs to the connection and read the
+  // current Journey stage itself. Use the one passed in, otherwise the active connection.
+  let connectionId = p.connectionId;
+  if (!connectionId) {
+    try { connectionId = (await getActive())[0]?.id; } catch { /* handled below */ }
+  }
+  if (!connectionId) return NO_CONNECTION;
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), warmedUp ? 25000 : 70000);
   try {
@@ -32,8 +48,13 @@ export async function askGuide(p: { intent?: Intent; message?: string; topic?: s
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      // Stage and IDs come from the server. Ask Baharath if the body also needs the connection id.
-      body: JSON.stringify({ intent: p.intent, message: p.message?.slice(0, 500), topic: p.topic?.slice(0, 100) }),
+      // The stage and user id come from the server, not from the app.
+      body: JSON.stringify({
+        connectionId,
+        intent: p.intent,
+        message: p.message?.slice(0, 500),
+        topic: p.topic?.slice(0, 100),
+      }),
     });
     if (!res.ok) return FALLBACK;
     warmedUp = true;

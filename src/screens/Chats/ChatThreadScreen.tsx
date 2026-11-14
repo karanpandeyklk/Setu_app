@@ -80,7 +80,7 @@ export default function ChatThreadScreen({ navigation, route }: any) {
   };
 
   const openProfile = () => navigation.navigate('ChatProfile', { chatId });
-  const openJourney = () => navigation.navigate('Journey'); // change to your Journey route name
+const openJourney = () => navigation.navigate('Main', { screen: 'Journey' });
 
   const renderItem = ({ item }: { item: Msg }) => {
     if (item.mine) {

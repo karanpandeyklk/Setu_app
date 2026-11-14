@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { focusedBox, noOutline } from '../../components/focus';
 import { getActive } from '../../services/api';
 import { askGuide, Intent, QUICK_ACTIONS } from '../../services/chatApi';
 import { colors, fonts, radius, spacing } from '../../theme';
@@ -24,10 +25,12 @@ const greeting = (): GMsg => ({ id: 'm0', mine: false, kind: 'greeting', time: c
 
 export default function GuideChatScreen({ navigation }: any) {
   const [matchName, setMatchName] = useState('your match');
+  const [connectionId, setConnectionId] = useState<string | undefined>(); // sent with every Guide request
   const [msgs, setMsgs] = useState<GMsg[]>([greeting()]);
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState('');
   const [note, setNote] = useState('');
@@ -35,7 +38,12 @@ export default function GuideChatScreen({ navigation }: any) {
   const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    getActive().then((a) => a[0] && setMatchName(a[0].name)).catch(() => {});
+    // the active connection gives us the match's name and the connectionId for the backend
+    getActive()
+      .then((a) => {
+        if (a[0]) { setMatchName(a[0].name); setConnectionId(a[0].id); }
+      })
+      .catch(() => {});
     return () => { if (noteTimer.current) clearTimeout(noteTimer.current); };
   }, []);
 
@@ -52,7 +60,8 @@ export default function GuideChatScreen({ navigation }: any) {
     const shown = p.text ?? QUICK_ACTIONS.find((q) => q.intent === p.intent)?.label ?? '';
     add({ id: `u${Date.now()}`, mine: true, text: shown, time: clock() });
     setText(''); setTyping(true);
-    const r = await askGuide({ intent: p.intent, message: p.text }); // never throws: a fallback bubble comes back
+    // never throws: a fallback bubble comes back. connectionId lets the backend verify membership.
+    const r = await askGuide({ connectionId, intent: p.intent, message: p.text });
     setTyping(false);
     // a fallback_used reply is shown as a normal bubble
     add({ id: `b${Date.now()}`, mine: false, text: r.reply, time: clock(), questions: r.questions, topic: r.topic, chips: r.chips, safety: r.safety });
@@ -168,13 +177,15 @@ export default function GuideChatScreen({ navigation }: any) {
                           <Text style={styles.suggestTitle}>{m.topic ?? 'Suggested questions'}</Text>
                         </View>
                         {visible.map((q) => (
-                          <Pressable key={q} style={styles.q} onPress={() => setText(q)} accessibilityRole="button" accessibilityLabel={`Use question: ${q}`}>
-                            <Ionicons name="ellipse" size={5} color={colors.primary} style={{ marginTop: 7 }} />
-                            <Text style={styles.qText}>{q}</Text>
-                            <Pressable onPress={() => copy(q)} style={styles.copy} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Copy: ${q}`}>
-                              <Ionicons name={copied === q ? 'checkmark' : 'copy-outline'} size={17} color={copied === q ? colors.success : colors.muted} />
-                            </Pressable>
-                          </Pressable>
+                          <View key={q} style={styles.q}>
+  <Pressable style={styles.qMain} onPress={() => setText(q)} accessibilityRole="button" accessibilityLabel={`Use question: ${q}`}>
+    <Ionicons name="ellipse" size={5} color={colors.primary} style={{ marginTop: 7 }} />
+    <Text style={styles.qText}>{q}</Text>
+  </Pressable>
+  <Pressable onPress={() => copy(q)} style={styles.copy} hitSlop={6} accessibilityRole="button" accessibilityLabel={`Copy: ${q}`}>
+    <Ionicons name={copied === q ? 'checkmark' : 'copy-outline'} size={17} color={copied === q ? colors.success : colors.muted} />
+  </Pressable>
+</View>
                         ))}
                         {qs.length > VISIBLE_QUESTIONS && (
                           <Pressable onPress={() => setExpanded((e) => ({ ...e, [m.id]: !isOpen }))} style={styles.more} accessibilityRole="button">
@@ -214,7 +225,7 @@ export default function GuideChatScreen({ navigation }: any) {
           <Pressable style={styles.plus} onPress={() => flash("Attachments aren't supported yet.")} accessibilityRole="button" accessibilityLabel="Add attachment">
             <Ionicons name="add" size={24} color="#fff" />
           </Pressable>
-          <View style={styles.inputWrap}>
+          <View style={[styles.inputWrap, inputFocused && focusedBox]}>
             <TextInput
               style={styles.input}
               value={text}
