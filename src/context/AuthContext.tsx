@@ -10,6 +10,7 @@ type AuthState = {
   user: User | null;
   loading: boolean; // true while checking for a stored session on app start
   signIn: (session?: Session) => Promise<void>;
+  loginWithPassword: (creds: { identifier: string; password: string }) => Promise<void>;
   updateName: (name: string) => Promise<void>;
   updateAvatar: (pickedUri: string) => Promise<string>; // returns the permanent path it saved
   signOut: () => Promise<void>;
@@ -66,10 +67,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  // With a session (from the OTP screen) or without one (Google / Apple use the dev login, which is Aanya)
+  // Google / Apple (dev) call signIn() with nothing and get the dev user (Aanya).
+  // The OTP screen and password login call it with a real session.
   const signIn = async (session?: Session) => {
-    // only treat the argument as a session if it really has a token
-    const s = session && typeof session.token === 'string' ? session : await devLogin();
+    let s: Session;
+    if (session === undefined) {
+      s = await devLogin();
+    } else if (typeof session.token === 'string') {
+      s = session;
+    } else {
+      // Something was passed but it is not a session. Fail loudly instead of silently logging in as Aanya.
+      throw new Error('Invalid session');
+    }
+
     await saveToken(s.token);
 
     // If a photo was picked before sign-in, attach it to the user now
@@ -79,6 +89,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(nextUser));
     setUser(nextUser);
+  };
+
+  // Email or phone + password. Checks the credentials, then signs in with the session it gets back.
+  const loginWithPassword = async ({ identifier, password }: { identifier: string; password: string }) => {
+    let session: Session;
+
+    // TODO: replace this block with your real API call.
+    // It should return { token, user }, or throw when the credentials are wrong.
+    // Example:
+    // const res = await fetch(`${API_URL}/auth/login`, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ identifier, password }),
+    // });
+    // if (!res.ok) throw new Error('Incorrect email/phone or password');
+    // session = await res.json();
+
+    // Temporary test account so you can try the screen without a backend (dev builds only)
+    if (__DEV__ && identifier.toLowerCase() === 'test@example.com' && password === 'Test@1234') {
+      session = await devLogin();
+    } else {
+      throw new Error('Incorrect email/phone or password');
+    }
+
+    await signIn(session);
   };
 
   // Called from the "What's your name?" screen
@@ -110,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, updateName, updateAvatar, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, loginWithPassword, updateName, updateAvatar, signOut }}>
       {children}
     </AuthContext.Provider>
   );

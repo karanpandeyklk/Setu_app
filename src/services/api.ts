@@ -255,3 +255,14 @@ export async function markAllNotificationsRead(): Promise<void> {
   if (!USE_MOCK) return request('/notifications/read', { method: 'POST' });
   store.readNotifications = buildNotifications().map((n) => n.id);
 }
+// ---- Profile save (v0 contract: PATCH /me/profile) ----
+// languages is an array of strings, 1 to 5 values from the 13 approved languages.
+export type ProfilePatch = { name?: string; dob?: string; gender?: string; languages?: string[] };
+
+export async function patchMyProfile(patch: ProfilePatch): Promise<void> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 300)); // mock mode: nothing is sent
+    return;
+  }
+  await request('/me/profile', { method: 'PATCH', body: JSON.stringify(patch) });
+}

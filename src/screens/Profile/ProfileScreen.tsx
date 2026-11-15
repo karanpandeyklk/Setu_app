@@ -66,7 +66,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.title}>My Profile</Text>
             <Text style={styles.subtitle}>Manage your profile and share what matters to you.</Text>
           </View>
-          <Pressable style={styles.iconBtn} onPress={soon('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </Pressable>
           <Pressable style={styles.iconBtn} onPress={soon('More options')} accessibilityRole="button" accessibilityLabel="More options">
