@@ -139,6 +139,22 @@ After a production build, confirm on the device that an `http://` request fails
 and the app only uses `https://`. The web development server may still use
 localhost; that is not a release build.
 
+The SDK 58 `expo-build-properties` docs confirm `usesCleartextTraffic` is the
+supported Android property, and the EAS `eas.json` schema confirms the profile
+fields used here (`environment`, `distribution`, `buildType`, `autoIncrement`,
+`appVersionSource`).
+
+## Local checks
+
+| Check | Result |
+|---|---|
+| `npx expo config --type public` | OK; resolved config contains `usesCleartextTraffic: false` |
+| `npx expo-doctor` | 18/20; `.expo/` ignore is missing on this branch (D3-15 adds it) and three pre-existing patch mismatches (`expo`, `expo-font`, `expo-status-bar`); no `expo-build-properties` mismatch |
+| `npx tsc --noEmit` | 19 pre-existing app-code errors tracked in #6; not a CI gate |
+
+Do not run `expo install --fix` or change app code in this task; dependency
+upgrades and typecheck fixes belong to their owners.
+
 ## Release-build test checklist (manual, real device)
 
 Install the signed production build and complete this in order.
