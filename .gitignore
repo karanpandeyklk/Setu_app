@@ -1,1 +1,16 @@
 node_modules
+.expo/
+dist/
+web-build/
+
+# Local environment files. Never commit real values.
+.env
+.env.*
+!.env.example
+
+# Signing and credential material. Never commit these.
+*.jks
+*.keystore
+*.p12
+*.key
+credentials.json
