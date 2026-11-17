@@ -23,6 +23,33 @@ Aditya's deployment doc names:
 The Node URL is the intended `EXPO_PUBLIC_API_URL`. **Confirm with Aditya before
 building.** Do not put a secret in either value; both are public.
 
+## Live smoke check — 2026-11-17 06:02 UTC
+
+Read-only checks with synthetic bodies; no credentials or real user data.
+
+| Target | Result |
+|---|---|
+| Node `GET /health` | `200`; CORS exact for `https://setu-app-ten.vercel.app`; random origin gets no ACAO; no Helmet headers and `x-powered-by: Express` is present |
+| Node `POST /auth/otp/request` | `404 NOT_FOUND` |
+| Node `POST /auth/send-otp` | `404 NOT_FOUND` |
+| Node `POST /auth/verify-otp` | `404 NOT_FOUND` |
+| Node `POST /guide/chat` | `404 NOT_FOUND` |
+| Guide `GET /health` | `200` |
+| Guide `POST /v1/guide/chat` | `200` with a valid synthetic body; canned mock-shaped reply; no API key sent |
+| Staging Node `GET /health` | `200`; `access-control-allow-origin: *` |
+| Staging Node `POST /auth/otp/request` | `404 NOT_FOUND` |
+| Website roots | `200` on both Vercel hosts |
+| Website `/privacy` | `404` on both Vercel hosts |
+
+Important distinction: the **Guide service** is reachable at
+`https://setu-guide-prod.onrender.com/v1/guide/chat`, but the app calls
+`POST /guide/chat` on the **Node API**, which is still 404. The Guide service
+returning 200 does not fix the app path.
+
+The Node response also lacks the Helmet headers expected from the hardened
+`dev` backend (`x-content-type-options`, `strict-transport-security`, etc.), so
+production is still running a stale build.
+
 ## Hardcoded-URL audit
 
 Checked `src/` and `app.json` on `origin/dev`:
@@ -49,10 +76,12 @@ by Karan.
    `/auth/dev-login` and no OTP route. Owner: Karan + Sakshi/Bharath.
 3. **Google login route.** Real mode calls `/auth/google`; the backend does not
    implement it.
-4. **Guide route.** The client calls `POST /guide/chat`; the backend does not
-   implement it. Production returns 404. Owner: backend.
+4. **Guide route.** The Guide service itself returns 200 at
+   `/v1/guide/chat`, but the client calls `POST /guide/chat` on the Node API;
+   that route is 404. Owner: backend.
 5. **Production deployment is stale.** `/health` is 200, but production has no
-   Helmet headers, OTP is 404, and `/guide/chat` is 404. Owner: Aditya/backend.
+   Helmet headers, OTP is 404, and the Node `/guide/chat` gateway route is 404.
+   Owner: Aditya/backend.
 6. **Android package and signing inputs are missing.** `app.json` has no
    `android.package`, no `versionCode`, and no `extra.eas.projectId`. Owner:
    Karan/lead + Ankit (D3-15).
