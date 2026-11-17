@@ -17,6 +17,8 @@ const C = {
   online: '#22C55E', danger: '#EF4444',
 };
 
+let tempSeq = 0;
+
 function Avatar({ uri, name, size, dot }: { uri?: string; name: string; size: number; dot?: boolean }) {
   return (
     <View style={{ width: size, height: size }}>
@@ -67,7 +69,7 @@ export default function ChatThreadScreen({ navigation, route }: any) {
   const send = async (body: string, retryId?: string) => {
     const clean = body.trim();
     if (!clean) return;
-    const tempId = retryId ?? `tmp${Date.now()}`;
+    const tempId = retryId ?? `tmp${++tempSeq}`;
     const temp: Msg = { id: tempId, mine: true, text: clean, time: '', status: 'sending' };
     setMsgs((prev) => (retryId ? prev.map((m) => (m.id === retryId ? temp : m)) : [...prev, temp]));
     if (!retryId) setText('');
@@ -151,7 +153,7 @@ export default function ChatThreadScreen({ navigation, route }: any) {
             <MaterialCommunityIcons name="infinity" size={22} color={C.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.bannerTitle}>You're connected</Text>
+            <Text style={styles.bannerTitle}>You&apos;re connected</Text>
             <Text style={styles.bannerSub}>Continue your Setu journey together.</Text>
           </View>
           <Pressable onPress={openJourney} style={styles.bannerBtn}>
@@ -172,10 +174,10 @@ export default function ChatThreadScreen({ navigation, route }: any) {
             msgs.length > 0 ? (
               // Msg has no date field yet, so this shows "Today" once. Add day grouping when the backend sends dates.
               <View style={styles.chip}><Text style={styles.chipText}>Today</Text></View>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={
-            !loading ? <Text style={styles.empty}>Say hi to {name} to start the conversation.</Text> : null
+            !loading ? <Text style={styles.empty}>Say hi to {name} to start the conversation.</Text> : undefined
           }
         />
 

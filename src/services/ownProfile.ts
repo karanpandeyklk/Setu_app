@@ -105,7 +105,7 @@ export function useOwnProfile(): OwnProfile {
         }
       })();
       return () => { alive = false; };
-    }, [user?.name]),
+    }, [user]),
   );
 
   return profile;

@@ -119,8 +119,8 @@ export default function ReflectResultsScreen({ navigation, route }: any) {
         <View style={styles.success}>
           <View style={styles.check}><Ionicons name="checkmark" size={20} color="#fff" /></View>
           <View style={{ flex: 1, marginLeft: spacing.md, paddingRight: 56 }}>
-            <Text style={styles.successTitle}>You've both completed the Reflect stage!</Text>
-            <Text style={styles.successText}>Here are our reflections for this stage. You can see each other's answers based on the sharing choices made.</Text>
+            <Text style={styles.successTitle}>You&apos;ve both completed the Reflect stage!</Text>
+            <Text style={styles.successText}>Here are our reflections for this stage. You can see each other&apos;s answers based on the sharing choices made.</Text>
           </View>
           <Ionicons name="document-text" size={44} color="#BFD3F5" style={styles.docArt} />
         </View>

@@ -38,7 +38,7 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
   const editable = mode === 'own';
 
   const { user } = useAuth();
-  const [own, setOwn] = useState<Profile | null>(null);
+  const [builtOwn, setBuiltOwn] = useState<Profile | null>(null);
   const [ownPhoto, setOwnPhoto] = useState<string | undefined>(); // saved profile photo
   const [tab, setTab] = useState<(typeof TABS)[number]>('About');
 
@@ -46,9 +46,10 @@ export default function ProfileDetailScreen({ navigation, route }: any) {
   useEffect(() => {
     if (mode !== 'own') return;
     getMyProfile().then((p) => setOwnPhoto(p?.photoUri)).catch(() => {});
-    if (user?.id === 'u_aanya') setOwn(PROFILES.u_aanya);
-    else buildOwnProfile(user?.name ?? '').then(setOwn);
+    if (user?.id !== 'u_aanya') buildOwnProfile(user?.name ?? '').then(setBuiltOwn);
   }, [mode, user?.id, user?.name]);
+
+  const own = mode !== 'own' ? null : user?.id === 'u_aanya' ? PROFILES.u_aanya : builtOwn;
 
   const matchId = params.personId ?? params.profileId;
   const profile: Profile | null = mode === 'own' ? own : findMatch(matchId);

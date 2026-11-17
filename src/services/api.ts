@@ -57,33 +57,54 @@ export async function getMe(): Promise<User> {
   return request('/me');
 }
 
-// ---------- OTP (demo) ----------
-// A real SMS needs a backend and an SMS provider. In mock mode the code is generated here
-// and shown on screen. The real endpoints below are NOT in the v0 contract: confirm them with Baharath.
+// ---------- OTP (email contract) ----------
+// Confirmed with Sakshi on 2026-11-17:
+//   POST /auth/otp/request  { email }
+//   POST /auth/otp/verify   { email, code }
+// Verify success is top-level { token, user, isNewUser } (no `data` wrapper).
+// The UI still collects a phone number in mock mode; Karan must switch signup to
+// an email input before USE_MOCK=false.
 let demoOtp = '';
 
-export async function sendOtp(phone: string): Promise<{ demoCode?: string }> {
+export type OtpSession = { token: string; user: User; isNewUser: boolean };
+
+export async function sendOtp(email: string): Promise<{ demoCode?: string }> {
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 500));
     demoOtp = String(Math.floor(100000 + Math.random() * 900000));
     return { demoCode: demoOtp };
   }
-  const r = await request<{ ok: boolean; demoCode?: string }>('/auth/send-otp', {
+  const r = await request<{ ok?: boolean; demoCode?: string }>('/auth/otp/request', {
     method: 'POST',
-    body: JSON.stringify({ phone }),
+    body: JSON.stringify({ email }),
   });
-  return { demoCode: r.demoCode }; // only present on staging when DEMO_OTP=true
+  return { demoCode: r.demoCode };
 }
 
-// Returns the session on success, or null for a wrong code
-export async function verifyOtp(phone: string, code: string): Promise<{ token: string; user: User } | null> {
+// Returns the session on success, or null for a wrong code / locked attempt.
+export async function verifyOtp(email: string, code: string): Promise<OtpSession | null> {
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 500));
-    // a new phone user has no name yet, so the app asks for it
-    return code === demoOtp ? { token: 'mock-token', user: { id: `u_${phone}`, name: '' } } : null;
+    // a new email user has no name yet, so the app asks for it
+    return code === demoOtp
+      ? { token: 'mock-token', user: { id: `u_${email}`, name: '' }, isNewUser: true }
+      : null;
   }
   try {
-    return await request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, code }) });
+    const r = await request<{
+      token: string;
+      user: { id?: string; username?: string; displayName?: string; name?: string; avatarUrl?: string };
+      isNewUser: boolean;
+    }>('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ email, code }) });
+    return {
+      token: r.token,
+      user: {
+        id: r.user?.id ?? '',
+        name: r.user?.displayName ?? r.user?.name ?? r.user?.username ?? '',
+        ...(r.user?.avatarUrl ? { avatar: r.user.avatarUrl } : {}),
+      },
+      isNewUser: r.isNewUser,
+    };
   } catch {
     return null;
   }

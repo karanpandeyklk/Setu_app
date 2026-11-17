@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ChatProfile, getChatProfile, setChatMuted } from '../../services/chatProfileApi';
 
@@ -26,7 +27,7 @@ export default function ChatProfileScreen({ navigation, route }: any) {
     getChatProfile(chatId).then(setP).catch(() => setFailed(true));
   }, [chatId]);
 
-  useEffect(load, [load]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const toggleMute = async () => {
     if (!p) return;

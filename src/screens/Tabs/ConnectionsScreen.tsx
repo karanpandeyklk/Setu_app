@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, RefreshControl, ScrollView, ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -48,8 +48,9 @@ function StageDots({ stage }: { stage: StageKey }) {
 export default function ConnectionsScreen({ navigation, route }: any) {
   const { width } = useWindowDimensions();
   const cardWidth = width - spacing.lg * 2; // one profile card per page in the carousel
-  const carousel = useRef<ScrollView>(null);
-  const [tab, setTab] = useState<Tab>('discover');
+  const carousel = useRef<ScrollViewInstance>(null);
+  const [tabChoice, setTabChoice] = useState<Tab>('discover');
+  const tab = (route.params?.tab as Tab | undefined) ?? tabChoice;
   const [discover, setDiscover] = useState<Person[]>([]);
   const [received, setReceived] = useState<ReceivedRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
@@ -58,7 +59,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
   const [closed, setClosed] = useState<Person[]>([]);
   const [bookmarked, setBookmarked] = useState<string[]>([]);
   const [unread, setUnread] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
   const [loading, setLoading] = useState(true);
@@ -67,7 +68,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
   const [banner, setBanner] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const hasLoaded = useRef(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const sectionY = useRef({ received: 0, sent: 0 });
   const [box, setBox] = useState<'received' | 'sent'>('received');
 
@@ -92,12 +93,10 @@ export default function ConnectionsScreen({ navigation, route }: any) {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  useEffect(() => {
-    if (route.params?.tab) {
-      setTab(route.params.tab);
-      navigation.setParams({ tab: undefined });
-    }
-  }, [route.params?.tab, navigation]);
+  const chooseTab = (next: Tab) => {
+    navigation.setParams({ tab: undefined });
+    setTabChoice(next);
+  };
 
   const act = async (key: string, fn: () => Promise<unknown>) => {
     if (busyKey !== null) return; // one action at a time, without greying out the other rows
@@ -138,19 +137,19 @@ export default function ConnectionsScreen({ navigation, route }: any) {
   const filtered = q ? discover.filter((p) => `${p.name} ${p.location} ${p.profession}`.toLowerCase().includes(q)) : discover;
   const recommended = filtered.slice(0, 5);
   const newProfiles = filtered.slice(5);
+  const selectedId = recommended.some((p) => p.id === selectedChoice) ? selectedChoice : null;
   const index = Math.max(recommended.findIndex((p) => p.id === selectedId), 0);
   const recIds = recommended.map((p) => p.id).join(',');
 
   // when the list changes (someone removed, or a search), go back to the first card
   useEffect(() => {
-    setSelectedId(null);
     carousel.current?.scrollTo({ x: 0, animated: false });
   }, [recIds]);
 
   const goTo = (i: number) => {
     const p = recommended[i];
     if (!p) return;
-    setSelectedId(p.id);
+    setSelectedChoice(p.id);
     carousel.current?.scrollTo({ x: i * cardWidth, animated: true });
   };
 
@@ -182,7 +181,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
           {TABS.map((t) => {
             const on = tab === t.key;
             return (
-              <Pressable key={t.key} style={[styles.pill, on && styles.pillOn]} onPress={() => setTab(t.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}>
+              <Pressable key={t.key} style={[styles.pill, on && styles.pillOn]} onPress={() => chooseTab(t.key)} accessibilityRole="tab" accessibilityState={{ selected: on }}>
                 <Text style={[styles.pillText, on && { color: '#fff' }]}>{t.label}</Text>
               </Pressable>
             );
@@ -246,7 +245,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
                   onMomentumScrollEnd={(e) => {
                     const i = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
                     const p = recommended[i];
-                    if (p) setSelectedId(p.id);
+                    if (p) setSelectedChoice(p.id);
                   }}
                 >
                   {recommended.map((p) => (
@@ -427,7 +426,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
             </View>
           </>
         ) : nothingActive ? (
-          <EmptyState icon="people-outline" title="No active connections" description="Accept a request or send interest to start your Setu journey." actionLabel="Find people" onAction={() => setTab('discover')} />
+          <EmptyState icon="people-outline" title="No active connections" description="Accept a request or send interest to start your Setu journey." actionLabel="Find people" onAction={() => chooseTab('discover')} />
         ) : (
           <>
             {/* Active Connections */}

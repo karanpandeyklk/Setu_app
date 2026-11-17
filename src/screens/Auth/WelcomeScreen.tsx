@@ -49,7 +49,7 @@ export default function WelcomeScreen({ navigation }: any) {
           <Text style={[styles.headline, { color: colors.primary }]}>at your own pace.</Text>
           <View style={styles.underline} />
           <Text style={styles.sub}>
-            Discover people, understand each other, and take the next step when you're ready.
+            Discover people, understand each other, and take the next step when you&apos;re ready.
           </Text>
 
           <View style={styles.features}>
