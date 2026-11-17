@@ -12,6 +12,11 @@ Status: **MISSING**. D3-20 owns the public policy/terms page. This file is the c
 | Support contact | `<support-email-provided-by-owner>` | Missing |
 | Website | `https://<public-domain>` | Missing |
 
+Live check on 2026-11-17: `https://sambandh-setu-website.vercel.app/privacy` and
+`https://setu-app-ten.vercel.app/privacy` both returned **404**. The website
+roots returned 200, so the public policy page still needs to be created and
+deployed.
+
 Requirements:
 
 - Publicly reachable without login or region blocking.
