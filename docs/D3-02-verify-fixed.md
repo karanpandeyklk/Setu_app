@@ -19,7 +19,7 @@ Do not mark an issue Verified from a code review, a green unit test, or the auth
 | Guide #19 | Medium | DevOps 1 | Fixed in #18; not verified |  |  |  |
 | Guide #20 | Medium | DevOps 1 | Fixed in #18; not verified |  |  |  |
 | Guide #21 | High (scanner) | DevOps 1 | Fixed in #18; not verified |  |  |  |
-| Guide #32 | Medium | Lead / DevOps 1 | Code done; rollout pending |  |  |  |
+| Guide #32 | Medium | Lead / DevOps 1 | Code done; rollout pending; production still open |  |  |  |
 
 `Build/deploy tested` must be a commit SHA, image digest, or deployment ID — not “latest” or “dev”.
 
@@ -100,6 +100,18 @@ $body = @{ stage = "connect"; intent = "next_steps"; user_id = "synthetic-verify
 Invoke-WebRequest -Method Post -Uri "https://<guide-host>/v1/guide/chat" `
   -ContentType "application/json" -Body $body
 ```
+
+### Live evidence recorded 2026-11-17
+
+A read-only smoke check of the production Guide service was run with a synthetic body (`user_id=synthetic-smoke`, `match_id=synthetic-match`, no credentials):
+
+```text
+POST https://setu-guide-prod.onrender.com/v1/guide/chat
+-> 200
+-> canned reply (no API key sent)
+```
+
+This confirms the production Guide endpoint is still open with `AUTH_METHOD=none`, which is exactly the rollout gap in #32. It is **not** verification of the auth fix. Do not mark #32 Verified until the lead confirms the method and the deployment enforces 401/200 as described above.
 
 ## Status transitions
 
