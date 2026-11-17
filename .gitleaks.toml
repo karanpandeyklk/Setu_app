@@ -1,0 +1,7 @@
+# Gitleaks configuration - Setu frontend.
+#
+# Extends the default rule set. No allowlists: the 2026-11-13 history scan
+# (D1-03) found zero findings, so any finding here is a real blocker.
+
+[extend]
+useDefault = true
