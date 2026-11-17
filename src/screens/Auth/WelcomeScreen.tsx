@@ -66,10 +66,14 @@ export default function WelcomeScreen({ navigation }: any) {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Button title="Get Started" arrow onPress={() => navigation.navigate('CreateAccount')} />
+          <Button title="Create account" onPress={() => navigation.navigate('CreateAccount', { mode: 'signup' })} />
           <Text style={styles.login}>
             Already have an account?{' '}
-            <Text style={styles.link} onPress={() => navigation.navigate('CreateAccount')} accessibilityRole="link">
+            <Text
+              style={styles.link}
+             onPress={() => navigation.navigate('Login')}
+              accessibilityRole="button"
+            >
               Log in
             </Text>
           </Text>

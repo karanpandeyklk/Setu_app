@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OptionChip from '../../components/OptionChip';
 import { colors, fonts, radius, shadow, spacing } from '../../theme';
+import AppInput from '../../components/AppInput';
 
 const GENDERS = ['Woman', 'Man', 'Prefer to self-describe', 'Prefer not to say'];
 
@@ -43,10 +44,10 @@ export default function OnboardingBasicsScreen({ navigation, route }: any) {
           <Text style={styles.sub}>These details help create your Sambandh profile.</Text>
 
           <Text style={styles.label}>Full name</Text>
-          <TextInput style={[styles.input, shadow.card]} value={name} onChangeText={setName} placeholder="Enter your name" placeholderTextColor={colors.muted} maxLength={40} accessibilityLabel="Full name" />
+         <AppInput value={name} onChangeText={setName} placeholder="Enter your name" maxLength={40} accessibilityLabel="Full name" />
 
           <Text style={styles.label}>Date of birth</Text>
-          <TextInput style={[styles.input, shadow.card]} value={dob} onChangeText={onDob} placeholder="DD / MM / YYYY" placeholderTextColor={colors.muted} keyboardType="number-pad" maxLength={10} accessibilityLabel="Date of birth" />
+          <AppInput value={dob} onChangeText={onDob} placeholder="DD / MM / YYYY" keyboardType="number-pad" maxLength={10} accessibilityLabel="Date of birth" />
           {!!err && <Text style={styles.error}>{err}</Text>}
 
           <Text style={styles.label}>Gender</Text>
@@ -66,7 +67,6 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 26, lineHeight: 34, color: colors.text, marginTop: spacing.lg },
   sub: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: spacing.sm },
   label: { fontFamily: fonts.semibold, fontSize: 13, color: colors.text, marginTop: spacing.xl, marginBottom: spacing.sm },
-  input: { backgroundColor: '#fff', borderRadius: radius.md, paddingHorizontal: spacing.lg, minHeight: 52, fontFamily: fonts.regular, fontSize: 15, color: colors.text },
   error: { fontFamily: fonts.regular, fontSize: 12, color: colors.danger, marginTop: spacing.xs },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

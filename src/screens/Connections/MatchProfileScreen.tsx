@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MATCH_PREFERENCES, SECTIONS } from '../../services/profileSections';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
@@ -12,7 +13,7 @@ import { getMatchProfile, MatchProfile, Source } from '../../services/matchData'
 import { store } from '../../services/mockData';
 import { colors, fonts, radius, spacing } from '../../theme';
 
-const TABS = ['Overview', 'About', 'Lifestyle', 'Family'] as const;
+const TABS = ['Overview', 'About', 'Lifestyle', 'Family', 'Preferences'] as const;
 type Tab = (typeof TABS)[number];
 
 const Rows = ({ rows }: { rows: { label: string; value: string }[] }) => (
@@ -222,17 +223,19 @@ export default function MatchProfileScreen({ navigation, route }: any) {
           </>
         )}
 
-        {tab === 'Family' && (
-          <>
-            <Section icon="home-outline" title="Family Background"><Rows rows={p.familyBackground} /></Section>
-            <Section icon="flower-outline" title="Religion & Caste"><Rows rows={p.religion} /></Section>
-            <Section icon="language-outline" title="Languages"><Rows rows={p.languages} /></Section>
-            <Section icon="people-outline" title="Family Involvement Preference">
-              <Rows rows={p.involvement} />
-              <Quote text={p.familyQuote} />
-            </Section>
-          </>
-        )}
+        {tab === 'Preferences' && (
+  <>
+    <Text style={[styles.sectionTitle, { marginLeft: 0, marginBottom: spacing.md }]}>{`${p.name}'s Partner Preferences`}</Text>
+    {SECTIONS.filter((s) => s.tab === 'preferences').map((s) => (
+      <Section key={s.id} icon={s.icon} title={s.title}>
+        <Rows rows={s.fields.map((f) => ({ label: f.label, value: MATCH_PREFERENCES[s.id]?.[f.key] ?? 'Not shared' }))} />
+      </Section>
+    ))}
+    <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.muted, textAlign: 'center', lineHeight: 18, marginTop: spacing.sm }}>
+      Partner preferences are only used to suggest better matches.
+    </Text>
+  </>
+)}
       </ScrollView>
 
       {showBar && (

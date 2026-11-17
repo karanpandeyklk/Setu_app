@@ -6,19 +6,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, shadow } from '../theme';
 
 // What the centre (infinity) button does:
-//   false = opens the Journey hub (stages, "Ask Setu Guide" button inside)
+//   false = opens the Journey page (stages, with Ask Setu Guide inside). This is the Figma flow.
 //   true  = opens the Setu Guide chat directly
-const CENTER_OPENS_CHAT = true;
+const CENTER_OPENS_CHAT = false;
 
-const CENTER = { icon: 'infinity', label: 'Setu Guide', center: true };
+type Tab = { icon: string; active: string; label: string; center?: boolean };
+const CENTER: Tab = { icon: 'infinity', active: 'infinity', label: 'Setu Guide', center: true };
 
-const TABS: Record<string, { icon: string; label: string; center?: boolean }> = {
-  Home: { icon: 'home', label: 'Home' },
-  Connections: { icon: 'people-outline', label: 'Connections' },
-  Journey: CENTER, // your navigator names the centre tab Journey
+// icon = outline (not selected), active = solid (selected)
+const TABS: Record<string, Tab> = {
+  Home: { icon: 'home-outline', active: 'home', label: 'Home' },
+  Connections: { icon: 'people-outline', active: 'people', label: 'Connections' },
+  Journey: CENTER,
   Guide: CENTER,
-  Chats: { icon: 'chatbubble-ellipses-outline', label: 'Chats' },
-  Profile: { icon: 'person-outline', label: 'Profile' },
+  Chats: { icon: 'chatbubble-ellipses-outline', active: 'chatbubble-ellipses', label: 'Chats' },
+  Profile: { icon: 'person-outline', active: 'person', label: 'Profile' },
 };
 
 export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
@@ -33,7 +35,6 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
           const focused = state.index === index;
 
           const onPress = () => {
-            // centre button: open the chat screen (a stack screen named "Guide")
             if (cfg.center && CENTER_OPENS_CHAT) {
               navigation.navigate('Guide' as never);
               return;
@@ -42,7 +43,6 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
             if (!focused && !e.defaultPrevented) navigation.navigate(route.name);
           };
 
-          const iconColor = focused ? '#fff' : colors.text;
           return (
             <Pressable
               key={route.key}
@@ -57,10 +57,11 @@ export default function BottomTabBar({ state, navigation }: BottomTabBarProps) {
                 cfg.center && { backgroundColor: focused ? colors.primary : colors.primarySoft },
                 !cfg.center && focused && { backgroundColor: colors.primary },
               ]}>
-                {cfg.icon === 'infinity' ? (
-                  <MaterialCommunityIcons name="infinity" size={24} color={focused ? '#fff' : colors.primary} />
+                {cfg.center ? (
+                  <MaterialCommunityIcons name="infinity" size={26} color={focused ? '#fff' : colors.primary} />
                 ) : (
-                  <Ionicons name={cfg.icon as any} size={22} color={iconColor} />
+                  // solid when selected, outline when not
+                  <Ionicons name={(focused ? cfg.active : cfg.icon) as any} size={22} color={focused ? '#fff' : colors.text} />
                 )}
               </View>
             </Pressable>

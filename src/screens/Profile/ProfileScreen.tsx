@@ -52,14 +52,11 @@ export default function ProfileScreen({ navigation }: any) {
   const edit = () => navigation.navigate('EditProfile');
   const photo = me.photoUri || (user as any)?.avatar; // a photo chosen in Edit Profile, or the one from sign-up
 
-  const menu = [
-    { icon: 'person-outline', label: 'View My Profile', onPress: () => navigation.navigate('ProfileDetail', { mode: 'own', profileId: user?.id }) },
-    { icon: 'create-outline', label: 'Edit Profile', onPress: edit },
-    { icon: 'clipboard-outline', label: 'Privacy & Safety', onPress: soon('Privacy & Safety') },
-    { icon: 'shield-checkmark-outline', label: 'Verification', onPress: soon('Verification') },
-    { icon: 'settings-outline', label: 'Settings', onPress: soon('Settings') },
-  ];
-
+ const menu = [
+  { icon: 'person-outline', label: 'View My Profile', onPress: () => navigation.navigate('ProfileDetail', { mode: 'own' }) },
+  { icon: 'create-outline', label: 'Edit Profile', onPress: () => navigation.navigate('EditProfile') },
+  { icon: 'settings-outline', label: 'Settings', onPress: () => navigation.navigate('Settings') },
+];
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -69,7 +66,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.title}>My Profile</Text>
             <Text style={styles.subtitle}>Manage your profile and share what matters to you.</Text>
           </View>
-          <Pressable style={styles.iconBtn} onPress={soon('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
+          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel="Settings">
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </Pressable>
           <Pressable style={styles.iconBtn} onPress={soon('More options')} accessibilityRole="button" accessibilityLabel="More options">
