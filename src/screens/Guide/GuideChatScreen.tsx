@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, ScrollViewInstance, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, ScrollViewInstance, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -13,6 +13,7 @@ const ICONS: Record<Intent, string> = {
   next_steps: 'sparkles-outline', privacy_safety: 'shield-checkmark-outline',
 };
 const VISIBLE_QUESTIONS = 5;
+let msgSeq = 0;
 
 type GMsg = {
   id: string; mine: boolean; kind?: 'greeting'; text?: string; time: string;
@@ -50,17 +51,18 @@ export default function GuideChatScreen({ navigation }: any) {
   const send = async (p: { intent?: Intent; text?: string }) => {
     if (typing) return;
     const shown = p.text ?? QUICK_ACTIONS.find((q) => q.intent === p.intent)?.label ?? '';
-    add({ id: `u${Date.now()}`, mine: true, text: shown, time: clock() });
+    add({ id: `u${++msgSeq}`, mine: true, text: shown, time: clock() });
     setText(''); setTyping(true);
     const r = await askGuide({ intent: p.intent, message: p.text }); // never throws: a fallback bubble comes back
     setTyping(false);
     // a fallback_used reply is shown as a normal bubble
-    add({ id: `b${Date.now()}`, mine: false, text: r.reply, time: clock(), questions: r.questions, topic: r.topic, chips: r.chips, safety: r.safety });
+    add({ id: `b${++msgSeq}`, mine: false, text: r.reply, time: clock(), questions: r.questions, topic: r.topic, chips: r.chips, safety: r.safety });
   };
 
   const onChip = (label: string) => {
     const quick = QUICK_ACTIONS.find((q) => q.label === label);
-    quick ? send({ intent: quick.intent }) : send({ text: label });
+    if (quick) send({ intent: quick.intent });
+    else send({ text: label });
   };
 
   const copy = async (q: string) => {

@@ -54,7 +54,8 @@ export default function HomeScreen({ navigation }: any) {
 
   const load = useCallback(async (pull = false) => {
     const id = ++reqId.current;
-    pull ? setRefreshing(true) : setLoading(true);
+    if (pull) setRefreshing(true);
+    else setLoading(true);
     setError(false);
     try {
       const d = await getHome();
@@ -139,7 +140,7 @@ export default function HomeScreen({ navigation }: any) {
             {error && (
               <Pressable style={styles.banner} onPress={() => load()} accessibilityRole="button" accessibilityLabel="Couldn't refresh. Tap to try again.">
                 <Ionicons name="cloud-offline-outline" size={16} color={colors.danger} />
-                <Text style={styles.bannerText}>Couldn't refresh. Tap to try again.</Text>
+                <Text style={styles.bannerText}>Couldn&apos;t refresh. Tap to try again.</Text>
               </Pressable>
             )}
 

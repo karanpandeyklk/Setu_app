@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import Chip from '../../components/Chip';
@@ -27,7 +28,7 @@ export default function ReflectQuestionScreen({ navigation, route }: any) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true); setLoadError(false);
     try {
       const r = await loadReflect();
@@ -36,8 +37,8 @@ export default function ReflectQuestionScreen({ navigation, route }: any) {
       setValue(a?.value ?? null); setOther(a?.other ?? ''); setSharing(a?.sharing ?? r.defaultSharing);
     } catch { setLoadError(true); }
     setLoading(false);
-  };
-  useEffect(() => { load(); }, []);
+  }, [index]);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   if (loading || loadError) {
     return (

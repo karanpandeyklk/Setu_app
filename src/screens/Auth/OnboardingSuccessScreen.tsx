@@ -38,7 +38,7 @@ export default function OnboardingSuccessScreen({ route }: any) {
       <View style={styles.center}>
         <View style={styles.circle}><Ionicons name="checkmark" size={40} color="#fff" /></View>
         <Text style={styles.title}>Your Sambandh{'\n'}profile is ready!</Text>
-        <Text style={styles.sub}>You can now explore Sambandh. Add more about yourself whenever you're ready.</Text>
+        <Text style={styles.sub}>You can now explore Sambandh. Add more about yourself whenever you&apos;re ready.</Text>
         {!!error && <Text style={styles.error}>{error}</Text>}
       </View>
       <Button title="Go to Home" loading={busy === 'home'} disabled={busy !== null} onPress={() => finish(false)} />

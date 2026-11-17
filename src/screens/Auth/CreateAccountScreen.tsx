@@ -57,7 +57,7 @@ export default function CreateAccountScreen({ navigation }: any) {
     <SafeAreaView style={styles.safe}>
       <Text style={styles.brand}>Sambandh Setu</Text>
       <Text style={styles.title}>Create your account</Text>
-      <Text style={styles.sub}>Let's start with your mobile number.</Text>
+      <Text style={styles.sub}>Let&apos;s start with your mobile number.</Text>
 
       <View style={{ marginTop: spacing.xl }}>
         <PhoneInput value={phone} onChangeText={setPhone} />
