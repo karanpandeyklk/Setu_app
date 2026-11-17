@@ -108,7 +108,7 @@ Legend: `P` pass, `F` fail, `B` blocked, `NT` not tested. Run 1 result is `NOT R
 | Guide #32 | Guide deploy | API-key default; verify real responses, step 26. |
 | Guide #30 | Staging | Environment unconfirmed; record the host used. |
 | auth/OTP missing | Backend | Steps 7–8 are blocked until routes exist. |
-| `/guide/chat` missing | Backend | Steps 25–26 are blocked until deployed. |
+| Node `/guide/chat` missing | Backend | The Guide service returns 200 at its own `/v1/guide/chat`, but the app calls the Node gateway path; steps 25–26 stay blocked until the Node route is deployed. |
 
 ## Pass/fail rules
 
@@ -188,5 +188,5 @@ File with the helper after redacting evidence:
 - Run 1 was never executed.
 - No fixed signed build/APK yet (D3-15).
 - No physical-device session in this environment.
-- Auth/OTP routes and `/guide/chat` are missing in production.
+- Auth/OTP routes are missing in production; the Node `/guide/chat` gateway is 404. The Guide service itself returns 200 at `/v1/guide/chat`, but that is not the app path.
 - D1-39 device script is still missing.
