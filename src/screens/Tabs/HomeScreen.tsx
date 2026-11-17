@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -218,7 +218,7 @@ export default function HomeScreen({ navigation }: any) {
             </Card>
 
             {/* Setu Guide promo */}
-            <Card style={[styles.guide, styles.gap]}>
+            <Card style={StyleSheet.flatten([styles.guide, styles.gap]) as ViewStyle}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardName}>Need help with your next step?</Text>
                 <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Get personalised guidance on conversations, family involvement and next steps.</Text>
@@ -228,7 +228,7 @@ export default function HomeScreen({ navigation }: any) {
             </Card>
 
             {/* Discover */}
-            <Card style={[styles.discover, styles.gap]}>
+            <Card style={StyleSheet.flatten([styles.discover, styles.gap]) as ViewStyle}>
               <View style={{ flex: 1 }}>
                 <View style={styles.infoRow}>
                   <Ionicons name="compass-outline" size={18} color={colors.primary} />

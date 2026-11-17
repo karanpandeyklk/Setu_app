@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import PhoneInput from '../../components/PhoneInput';
@@ -77,7 +77,7 @@ export default function CreateAccountScreen({ navigation }: any) {
 
       <Button variant="outline" title="Continue with Google" loading={googleLoading} onPress={onGoogle} style={styles.social} />
       {/* Apple: no real sign-in yet. Uses the dev login so the flow stays testable. */}
-      <Button variant="outline" title="Continue with Apple" onPress={() => signIn()} style={[styles.social, { marginTop: spacing.md }]} />
+      <Button variant="outline" title="Continue with Apple" onPress={() => signIn()} style={StyleSheet.flatten([styles.social, { marginTop: spacing.md }]) as ViewStyle} />
       <Text style={styles.terms}>
         By continuing, you agree to our <Text style={styles.link}>Terms of Service</Text> and <Text style={styles.link}>Privacy Policy</Text>.
       </Text>

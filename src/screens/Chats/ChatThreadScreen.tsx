@@ -172,10 +172,10 @@ export default function ChatThreadScreen({ navigation, route }: any) {
             msgs.length > 0 ? (
               // Msg has no date field yet, so this shows "Today" once. Add day grouping when the backend sends dates.
               <View style={styles.chip}><Text style={styles.chipText}>Today</Text></View>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={
-            !loading ? <Text style={styles.empty}>Say hi to {name} to start the conversation.</Text> : null
+            !loading ? <Text style={styles.empty}>Say hi to {name} to start the conversation.</Text> : undefined
           }
         />
 

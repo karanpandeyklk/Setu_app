@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, RefreshControl, ScrollView, ScrollViewInstance, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -48,7 +48,7 @@ function StageDots({ stage }: { stage: StageKey }) {
 export default function ConnectionsScreen({ navigation, route }: any) {
   const { width } = useWindowDimensions();
   const cardWidth = width - spacing.lg * 2; // one profile card per page in the carousel
-  const carousel = useRef<ScrollView>(null);
+  const carousel = useRef<ScrollViewInstance>(null);
   const [tab, setTab] = useState<Tab>('discover');
   const [discover, setDiscover] = useState<Person[]>([]);
   const [received, setReceived] = useState<ReceivedRequest[]>([]);
@@ -67,7 +67,7 @@ export default function ConnectionsScreen({ navigation, route }: any) {
   const [banner, setBanner] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const hasLoaded = useRef(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const sectionY = useRef({ received: 0, sent: 0 });
   const [box, setBox] = useState<'received' | 'sent'>('received');
 

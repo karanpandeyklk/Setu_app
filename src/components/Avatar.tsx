@@ -3,7 +3,15 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts } from '../theme';
 
-type Props = { uri?: string; name?: string; size?: number; online?: boolean; verified?: boolean };
+type Props = {
+  uri?: string;
+  name?: string;
+  label?: string;
+  size?: number;
+  shape?: 'circle' | 'rounded';
+  online?: boolean;
+  verified?: boolean;
+};
 
 // soft background and text colors, picked from the person's name so each person looks different
 const PALETTE = [
@@ -13,16 +21,18 @@ const PALETTE = [
 const pick = (name: string) => PALETTE[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % PALETTE.length];
 
 // Photo if there is one, otherwise the initial letter, otherwise a generic icon
-export default function Avatar({ uri, name, size = 48, online, verified }: Props) {
-  const initial = name?.trim().charAt(0).toUpperCase();
-  const tone = name ? pick(name) : { bg: colors.primarySoft, fg: colors.primary };
+export default function Avatar({ uri, name, label, size = 48, shape = 'circle', online, verified }: Props) {
+  const displayName = name ?? label;
+  const initial = displayName?.trim().charAt(0).toUpperCase();
+  const tone = displayName ? pick(displayName) : { bg: colors.primarySoft, fg: colors.primary };
+  const cornerRadius = shape === 'rounded' ? size * 0.22 : size / 2;
 
   return (
     <View style={{ width: size, height: size }}>
       {uri ? (
-        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+        <Image source={{ uri }} style={{ width: size, height: size, borderRadius: cornerRadius }} />
       ) : (
-        <View style={[styles.fallback, { width: size, height: size, borderRadius: size / 2, backgroundColor: tone.bg }]}>
+        <View style={[styles.fallback, { width: size, height: size, borderRadius: cornerRadius, backgroundColor: tone.bg }]}>
           {initial ? (
             <Text style={{ fontFamily: fonts.semibold, fontSize: size * 0.42, color: tone.fg }}>{initial}</Text>
           ) : (
