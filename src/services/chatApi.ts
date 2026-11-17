@@ -22,7 +22,7 @@ const FALLBACK: GuideReply = {
 
 let warmedUp = false; // the first call can take about a minute on the free staging service
 
-export async function askGuide(p: { intent?: Intent; message?: string; topic?: string }): Promise<GuideReply> {
+export async function askGuide(p: { intent?: Intent; message?: string; topic?: string; connectionId?: string }): Promise<GuideReply> {
   if (USE_MOCK) { await delay(1000); return mockGuide(p); }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), warmedUp ? 25000 : 70000);
@@ -32,8 +32,14 @@ export async function askGuide(p: { intent?: Intent; message?: string; topic?: s
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      // Stage and IDs come from the server. Ask Baharath if the body also needs the connection id.
-      body: JSON.stringify({ intent: p.intent, message: p.message?.slice(0, 500), topic: p.topic?.slice(0, 100) }),
+      // The Node bridge validates connection membership, so the active connection id is required.
+      // Callers should pass it; it is optional here to avoid breaking the current mock-mode screens.
+      body: JSON.stringify({
+        ...(p.connectionId ? { connectionId: p.connectionId } : {}),
+        intent: p.intent,
+        message: p.message?.slice(0, 500),
+        topic: p.topic?.slice(0, 100),
+      }),
     });
     if (!res.ok) return FALLBACK;
     warmedUp = true;
