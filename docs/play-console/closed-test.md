@@ -90,7 +90,7 @@ Do not paste screenshots containing tester emails or account details into the re
 - No privacy policy, deletion path, or reviewer login (D3-16).
 - No tester list or feedback form supplied.
 - Play account type and current closed-test rule unconfirmed.
-- Production auth/Guide are not live; testers would hit mock/404 paths.
+- Production auth is not live; the app's Node `/guide/chat` gateway is 404 (the separate Guide service is reachable, but the app does not call it directly).
 - If the build is mock-backed, the closed test cannot validate the production contract.
 
 ## Done when
