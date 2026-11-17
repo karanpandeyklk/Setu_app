@@ -39,7 +39,7 @@ export default function OnboardingBasicsScreen({ navigation, route }: any) {
       <OnboardingHeader step={1} total={3} onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={{ paddingBottom: spacing.lg }} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Let's start with{'\n'}the basics</Text>
+          <Text style={styles.title}>Let&apos;s start with{'\n'}the basics</Text>
           <Text style={styles.sub}>These details help create your Sambandh profile.</Text>
 
           <Text style={styles.label}>Full name</Text>

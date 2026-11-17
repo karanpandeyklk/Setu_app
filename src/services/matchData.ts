@@ -17,7 +17,7 @@ export type Source = 'received' | 'sent' | 'discover' | 'active' | 'paused' | 'o
 function findPerson(id: string): { person: Person; source: Source } | null {
   const lists: [Person[], Source][] = [
     [store.received, 'received'], [store.discover, 'discover'], [store.sent, 'sent'],
-    [store.active, 'active'], [store.paused, 'paused'], [store.completed, 'other'],
+    [store.active, 'active'], [store.paused, 'paused'], [store.closed, 'other'],
   ];
   for (const [list, source] of lists) {
     const p = list.find((x) => x.id === id);

@@ -51,17 +51,22 @@ function MainTabs() {
 export default function RootNavigator() {
   const { user, loading } = useAuth();
   // Where the signed-in stack opens: the profile builder right after onboarding, otherwise Home.
-  const [startRoute, setStartRoute] = useState<'Main' | 'ProfileBuilder' | null>(null);
+  const [start, setStart] = useState<{ userId: string; route: 'Main' | 'ProfileBuilder' } | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      setStartRoute(null);
-      return;
-    }
+    if (!user) return;
+    let alive = true;
     AsyncStorage.getItem(OPEN_BUILDER_KEY)
-      .then((v) => setStartRoute(v === '1' ? 'ProfileBuilder' : 'Main'))
-      .catch(() => setStartRoute('Main'));
+      .then((v) => {
+        if (alive) setStart({ userId: user.id, route: v === '1' ? 'ProfileBuilder' : 'Main' });
+      })
+      .catch(() => {
+        if (alive) setStart({ userId: user.id, route: 'Main' });
+      });
+    return () => { alive = false; };
   }, [user]);
+
+  const startRoute = user && start?.userId === user.id ? start.route : null;
 
   if (loading || (user && !startRoute)) {
     return (

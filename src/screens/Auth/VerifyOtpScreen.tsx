@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import Keypad from '../../components/Keypad';
 import OtpInput from '../../components/OtpInput';
-import { useAuth } from '../../context/AuthContext';
 import { sendOtp, verifyOtp } from '../../services/api';
 import { colors, fonts, radius, spacing } from '../../theme';
 
@@ -21,7 +20,6 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
   const [attempts, setAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
   const locked = attempts >= MAX_ATTEMPTS;
 
   // 30-second resend countdown
@@ -78,7 +76,7 @@ if (session) {
       </Pressable>
 
       <Text style={styles.title}>Verify your number</Text>
-      <Text style={styles.sub}>We've sent a 6-digit code to</Text>
+      <Text style={styles.sub}>We&apos;ve sent a 6-digit code to</Text>
       <Text style={styles.phone}>{masked}</Text>
 
       {/* Demo mode only: a real SMS needs a backend and an SMS provider */}
@@ -97,7 +95,7 @@ if (session) {
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       <Text style={styles.resend}>
-        Didn't receive the code?{' '}
+        Didn&apos;t receive the code?{' '}
         {seconds > 0 && !locked ? (
           <Text style={styles.bold}>
             Resend <Text style={styles.timer}>({mm}:{ss})</Text>

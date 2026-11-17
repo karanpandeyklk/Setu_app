@@ -34,7 +34,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/frontend-config.test.js"
+    "test": "node --test test/frontend-config.test.js",
+    "lint": "expo lint"
   },
   "private": true
 }

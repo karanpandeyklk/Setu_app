@@ -85,7 +85,7 @@ export default function NotificationsScreen({ navigation }: any) {
                   <Text style={styles.markAll} onPress={markAll} accessibilityRole="button">Mark all as read</Text>
                 )}
               </View>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={<EmptyState icon="notifications-off-outline" title="No notifications yet" description="Requests, updates and tips will show up here." />}
           renderItem={({ item }) => (
