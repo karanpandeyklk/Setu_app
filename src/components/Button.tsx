@@ -48,7 +48,7 @@ export default function Button({
         <ActivityIndicator color={textColor} />
       ) : (
         <>
-          {!!icon && <Ionicons name={icon as any} size={small ? 16 : 18} color={textColor} style={{ marginRight: 8 }} />}
+          {!!icon && <Ionicons name={icon as any} size={small ? 24 : 18} color={textColor} style={{ marginRight: 8 }} />}
           <Text style={[styles.label, small && { fontSize: 13 }, { color: textColor }]}>{title}</Text>
           {arrow && <Ionicons name="arrow-forward" size={18} color={textColor} style={{ marginLeft: 8 }} />}
         </>

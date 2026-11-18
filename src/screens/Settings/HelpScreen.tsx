@@ -2,7 +2,7 @@ import React from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts } from '../../theme';
+import { settingsFonts as fonts } from '../../theme';
 
 const SUPPORT_EMAIL = 'support@sambandhsetu.com'; // replace with your real address
 

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Keyboard } from 'react-native'; // add to the existing import list
 import { useFocusEffect } from '@react-navigation/native';
 import { getMessages, sendMessage, markRead, Msg } from '../../services/chatApi';
 
@@ -40,6 +41,7 @@ export default function ChatThreadScreen({ navigation, route }: any) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const listRef = useRef<FlatList<Msg>>(null);
+  const [focused, setFocused] = useState(false);
 
   // Server messages plus any local ones still sending or failed.
   const load = useCallback(async () => {
@@ -184,25 +186,31 @@ const openJourney = () => navigation.navigate('Main', { screen: 'Journey' });
           <Pressable style={styles.plus}><Ionicons name="add" size={26} color="#fff" /></Pressable>
           <View style={styles.inputWrap}>
             <TextInput
-              value={text}
-              onChangeText={setText}
-              placeholder="Type a message..."
-              placeholderTextColor={C.sub}
-              style={styles.input}
-              multiline
-              maxLength={1000}
-            />
+  value={text}
+  onChangeText={setText}
+  onFocus={() => setFocused(true)}
+  onBlur={() => setFocused(false)}
+  placeholder="Type a message..."
+  placeholderTextColor={C.sub}
+  style={styles.input}
+  multiline
+  maxLength={1000}
+/>
             <Ionicons name="happy-outline" size={22} color={C.sub} />
           </View>
-          {text.trim() ? (
-            <Pressable onPress={() => send(text)} hitSlop={8} style={styles.sendBtn}>
-              <Ionicons name="send" size={18} color="#fff" />
-            </Pressable>
-          ) : (
-            <Pressable hitSlop={8} style={styles.micBtn}>
-              <Ionicons name="mic-outline" size={24} color={C.primary} />
-            </Pressable>
-          )}
+     {focused || text.trim() ? (
+  <Pressable
+    onPress={() => send(text)}
+    hitSlop={8}
+    style={[styles.sendBtn, !text.trim() && { opacity: 0.5 }]}
+  >
+    <Ionicons name="send" size={18} color="#fff" />
+  </Pressable>
+) : (
+  <Pressable hitSlop={8} style={styles.micBtn}>
+    <Ionicons name="mic-outline" size={24} color={C.primary} />
+  </Pressable>
+)}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -242,6 +250,7 @@ const styles = StyleSheet.create({
   bubble: { borderRadius: 16, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6, maxWidth: '100%' },
   bubbleTheirs: { backgroundColor: C.bubbleIn, borderBottomLeftRadius: 4 },
   bubbleMine: { backgroundColor: C.primary, borderBottomRightRadius: 4, maxWidth: '80%' },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   textTheirs: { fontSize: 15, lineHeight: 21, color: C.text },
   textMine: { fontSize: 15, lineHeight: 21, color: '#fff' },
   timeTheirs: { fontSize: 11, color: C.sub, alignSelf: 'flex-end', marginTop: 4 },
@@ -257,7 +266,14 @@ const styles = StyleSheet.create({
     flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.bubbleIn, borderRadius: 22,
     paddingHorizontal: 14, minHeight: 40, maxHeight: 120,
   },
-  input: { flex: 1, fontSize: 15, color: C.text, paddingVertical: 8, maxHeight: 110 },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
-  micBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  input: {
+  flex: 1,
+  fontSize: 15,
+  color: C.text,
+  paddingVertical: 8,
+  maxHeight: 110,
+  backgroundColor: 'transparent',
+  borderWidth: 0,
+  ...(Platform.OS === 'web' ? ({ outlineStyle: 'none', outlineWidth: 0 } as any) : null),
+},
 });

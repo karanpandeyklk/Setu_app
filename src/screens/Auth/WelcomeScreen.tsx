@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Logo from '../../components/Logo';
 import Button from '../../components/Button';
 import { colors, fonts, radius, spacing } from '../../theme';
 
@@ -24,9 +25,7 @@ export default function WelcomeScreen({ navigation }: any) {
       >
         {/* Header: logo badge, brand name, tagline, language pill */}
         <View style={styles.top}>
-          <View style={styles.badge}>
-            <Ionicons name="people" size={18} color={colors.primary} />
-          </View>
+          <Logo size={40} />
           <View style={{ flex: 1, marginLeft: spacing.sm }}>
             <Text style={styles.brand}>Sambandh Setu</Text>
             <Text style={styles.tagline}>PEOPLE · CONVERSATIONS · POSSIBILITIES</Text>

@@ -2,14 +2,14 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, shadow } from '../theme';
 
 // What the centre (infinity) button does:
 //   false = opens the Journey page (stages, with Ask Setu Guide inside). This is the Figma flow.
 //   true  = opens the Setu Guide chat directly
-const CENTER_OPENS_CHAT = false;
-
+const CENTER_OPENS_CHAT = true;
 type Tab = { icon: string; active: string; label: string; center?: boolean };
 const CENTER: Tab = { icon: 'infinity', active: 'infinity', label: 'Setu Guide', center: true };
 

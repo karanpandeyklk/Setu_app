@@ -28,12 +28,17 @@ export const SECTIONS: SectionDef[] = [
   ] },
 
   // ---- Family tab ----
-  { id: 'familyBackground', tab: 'family', title: 'Family Background', icon: 'home-outline', desc: 'Your family and home', fields: [
+   { id: 'familyBackground', tab: 'family', title: 'Family Background', icon: 'people-outline', desc: 'Your family and home', fields: [
     { key: 'father', label: 'Father', placeholder: 'For example Businessman', icon: 'man-outline' },
     { key: 'mother', label: 'Mother', placeholder: 'For example Homemaker', icon: 'woman-outline' },
-    { key: 'familyType', label: 'Family type', placeholder: 'For example Nuclear family', icon: 'home-outline' },
+    { key: 'familyType', label: 'Family Type', placeholder: 'For example Nuclear family', icon: 'home-outline' },
     { key: 'siblings', label: 'Siblings', placeholder: 'For example One younger brother', icon: 'people-outline' },
-    { key: 'familyValues', label: 'Family values', placeholder: 'For example Traditional with a modern outlook', icon: 'heart-outline', multiline: true },
+    { key: 'religion', label: 'Religion', placeholder: 'For example Hindu', icon: 'flower-outline' },
+    { key: 'caste', label: 'Caste', placeholder: 'For example Prefer not to say', icon: 'ribbon-outline' },
+    { key: 'subcaste', label: 'Sub-caste (Optional)', placeholder: 'For example Not specified', icon: 'ribbon-outline' },
+    { key: 'location', label: 'Location', placeholder: 'For example Hyderabad, Telangana', icon: 'location-outline' },
+    { key: 'familyValues', label: 'Family Values', placeholder: 'For example Traditional with a modern outlook', icon: 'heart-outline', multiline: true },
+    { key: 'note', label: 'Family note', placeholder: 'For example My family is supportive of my choices', icon: 'home-outline', multiline: true },
   ] },
   { id: 'religion', tab: 'family', title: 'Religion & Caste', icon: 'flower-outline', desc: 'Only if you wish to share it', fields: [
     { key: 'religion', label: 'Religion', placeholder: 'For example Hindu', icon: 'flower-outline' },
@@ -43,9 +48,9 @@ export const SECTIONS: SectionDef[] = [
     { key: 'known', label: 'Known languages', placeholder: 'For example English, Hindi, Telugu', icon: 'language-outline' },
     { key: 'comfortable', label: 'Comfortable in', placeholder: 'For example English', icon: 'chatbubbles-outline' },
   ] },
-  { id: 'involvement', tab: 'family', title: 'Family Involvement', icon: 'people-circle-outline', desc: 'When to involve your family', fields: [
-    { key: 'involvement', label: 'Family involvement', placeholder: 'For example After mutual understanding', icon: 'people-outline' },
-    { key: 'meeting', label: 'Family meeting', placeholder: 'For example Open when both are comfortable', icon: 'calendar-outline', multiline: true },
+    { id: 'involvement', tab: 'family', title: 'Family Involvement Preference', icon: 'people-circle-outline', desc: 'When to involve your family', fields: [
+    { key: 'involvement', label: 'Preferred Stage', placeholder: 'For example After mutual understanding', icon: 'people-outline' },
+    { key: 'meeting', label: 'Family Meeting', placeholder: 'For example Open when both are comfortable', icon: 'calendar-outline', multiline: true },
   ] },
 
   // ---- Preferences tab (partner preferences) ----
@@ -78,8 +83,7 @@ const DEMO: SectionValues = {
   interests: { food: 'Vegetarian', travel: 'Mountains and heritage towns', hobbies: 'Painting, cooking', music: 'Indie, classical', movies: 'Drama, documentaries', fitness: 'Yoga, 4 times a week' },
   routine: { wake: '6:30 AM', work: '9:30 AM to 6:00 PM', evening: 'Walk, cook, read', weekends: 'Family and friends' },
   values: { values: 'Honesty, respect, open communication, family-oriented' },
-  familyBackground: { father: 'Retired engineer', mother: 'Teacher', familyType: 'Nuclear family', siblings: 'One elder sister', familyValues: 'Close-knit, respectful and open-minded' },
-  religion: { religion: 'Hindu', caste: 'Prefer not to say' },
+  familyBackground: { father: 'Businessman', mother: 'Homemaker', familyType: 'Nuclear Family', siblings: 'Younger Brother (Studying)', caste: 'Kamma', subcaste: 'Not specified', location: 'Menek Chowk, Gujarat', familyValues: 'Traditional with modern outlook, respect, togetherness', note: 'My family is supportive of my personal and professional choices and values open communication.' },
   languages: { known: 'Hindi, English, Marathi', comfortable: 'English' },
   involvement: { involvement: 'After mutual understanding', meeting: 'Open to meeting family when both are comfortable' },
   prefBasic: { age: '28 to 33 years', height: `5'8" and above`, location: 'Mumbai, Pune, Bengaluru', marital: 'Never married' },

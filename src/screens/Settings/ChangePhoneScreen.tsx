@@ -3,7 +3,9 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import AppInput from '../../components/AppInput';
 import { S, SettingsScreenLayout } from '../../components/settings/SettingsUI';
 
-export default function ChangePhoneScreen({ navigation }: any) {
+export default function ChangePhoneScreen({ navigation, route }: any) {
+  const adding = route.params?.mode === 'add';
+
   const [phone, setPhone] = useState('');
   const [sent, setSent] = useState(false);
   const [otp, setOtp] = useState('');
@@ -17,19 +19,24 @@ export default function ChangePhoneScreen({ navigation }: any) {
     setSent(true);
   };
   const verify = () => {
-    // TODO: verify the OTP with your backend, then update the user's phone
+    // TODO: verify the OTP with your backend, then update (or add) the user's phone.
+    // When adding, save it as the secondary number and keep the primary one.
     setDone(true);
   };
 
   return (
     <SettingsScreenLayout
-      title="Phone Number"
-      subtitle="We'll send a code to verify your new number."
-      bg="#EEF3FF"
+      title={adding ? 'Add Another Number' : 'Change Phone Number'}
+      subtitle={
+        adding
+          ? 'Add a secondary number. We will send a code to verify it.'
+          : "We'll send a code to verify your new number."
+      }
+      bg="#F7F8FC"
       onBack={() => navigation.goBack()}
     >
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}>
-        <Text style={styles.label}>New mobile number</Text>
+        <Text style={styles.label}>{adding ? 'Secondary mobile number' : 'New mobile number'}</Text>
         <AppInput
           value={phone}
           onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
@@ -54,7 +61,7 @@ export default function ChangePhoneScreen({ navigation }: any) {
               placeholder="······"
             />
             <Pressable style={[styles.btn, !otpOk && styles.btnOff]} disabled={!otpOk} onPress={verify}>
-              <Text style={styles.btnText}>Verify and update</Text>
+              <Text style={styles.btnText}>{adding ? 'Verify and add' : 'Verify and update'}</Text>
             </Pressable>
             <Pressable style={styles.link} onPress={() => { setSent(false); setOtp(''); }}>
               <Text style={styles.linkText}>Change number</Text>
@@ -62,7 +69,14 @@ export default function ChangePhoneScreen({ navigation }: any) {
           </>
         )}
 
-        {done && <Text style={styles.success}>Phone number updated.</Text>}
+        {done && (
+          <>
+            <Text style={styles.success}>{adding ? 'Secondary number added.' : 'Phone number updated.'}</Text>
+            <Pressable style={styles.link} onPress={() => navigation.goBack()}>
+              <Text style={styles.linkText}>Back to Phone Number</Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
     </SettingsScreenLayout>
   );

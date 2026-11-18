@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "setu-app",
+    "name": "Sambandh Setu",
     "slug": "setu-app",
     "version": "1.0.0",
+    "splash": { "image": "./assets/splash-icon.png" },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -10,8 +11,10 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.edurank.sambandhsetu",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -23,7 +26,17 @@
     },
     "plugins": [
       "expo-font",
-      "@react-native-google-signin/google-signin"
-    ]
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.placeholder"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a7e2c2d5-3d2c-4538-9a0a-463e35c57eda"
+      }
+    }
   }
 }

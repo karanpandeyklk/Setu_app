@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts } from '../../theme';
+import { settingsFonts as fonts } from '../../theme';
 
 const NAVY = '#0F1B3D';
 const GREY = '#7B8498';
