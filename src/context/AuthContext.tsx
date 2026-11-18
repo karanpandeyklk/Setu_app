@@ -4,6 +4,11 @@ import { clearToken, devLogin, getMe, getToken, saveToken, USE_MOCK, User } from
 
 const USER_KEY = 'setu_user'; // the signed-in user (id, name and avatar) is stored here
 const PENDING_AVATAR_KEY = 'setu_pending_avatar'; // photo picked before the user object exists
+const ACTIVE_PHONE_KEY = 'setu_active_phone'; // the phone number the current profile data belongs to
+// Onboarding + profile data the rest of the app reads. These are kept per phone number across logout.
+const PROFILE_KEYS = ['setu_profile', 'setu_builder_answers', 'profileBuilder:v1'];
+const archiveKey = (phone: string) => `setu_archive:${phone}`;
+
 type Session = { token: string; user: User };
 
 type AuthState = {
@@ -11,6 +16,8 @@ type AuthState = {
   loading: boolean; // true while checking for a stored session on app start
   signIn: (session?: Session) => Promise<void>;
   loginWithPassword: (creds: { identifier: string; password: string }) => Promise<void>;
+  // Returning user check: restores the saved profile for this phone. Returns null for a new user.
+  restoreProfile: (phone: string) => Promise<{ user?: Partial<User> } | null>;
   updateName: (name: string) => Promise<void>;
   updateAvatar: (pickedUri: string) => Promise<string>; // returns the permanent path it saved
   signOut: () => Promise<void>;
@@ -18,6 +25,26 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState>({} as AuthState);
 export const useAuth = () => useContext(AuthContext);
+
+// Onboarding is complete when name, date of birth and gender were saved
+function isComplete(raw: string | null | undefined): boolean {
+  try {
+    const p = JSON.parse(raw || '');
+    return !!(p?.name && p?.dob && p?.gender);
+  } catch {
+    return false;
+  }
+}
+
+// Save the current user's profile data under their phone number, so it survives logout
+async function archiveCurrentProfile() {
+  const phone = await AsyncStorage.getItem(ACTIVE_PHONE_KEY);
+  if (!phone) return;
+  const pairs = await AsyncStorage.multiGet([USER_KEY, ...PROFILE_KEYS]);
+  const bag: Record<string, string> = {};
+  pairs.forEach(([k, v]) => { if (v != null) bag[k] = v; });
+  if (isComplete(bag.setu_profile)) await AsyncStorage.setItem(archiveKey(phone), JSON.stringify(bag));
+}
 
 // The image picker returns a path in the cache folder, which Android can delete at any time.
 // Copy it into the app's permanent folder and use that path instead.
@@ -91,6 +118,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(nextUser);
   };
 
+  // Called by the OTP screen after the code is correct.
+  // Returning user (onboarding already done for this phone): puts their saved profile back and returns it.
+  // New user: returns null, and the app goes through onboarding.
+  const restoreProfile = async (phone: string) => {
+    const active = await AsyncStorage.getItem(ACTIVE_PHONE_KEY);
+
+    // A different person was using this device: save their data under their number and clear it
+    if (active && active !== phone) {
+      await archiveCurrentProfile();
+      await AsyncStorage.multiRemove([...PROFILE_KEYS, 'setu_open_builder']);
+    }
+    await AsyncStorage.setItem(ACTIVE_PHONE_KEY, phone);
+
+    // Same phone and the data is still here
+    if (active === phone && isComplete(await AsyncStorage.getItem('setu_profile'))) return {};
+
+    // Same phone, data saved at the last logout
+    const archived = await AsyncStorage.getItem(archiveKey(phone));
+    if (!archived) return null;
+    try {
+      const bag: Record<string, string> = JSON.parse(archived);
+      if (!isComplete(bag.setu_profile)) return null;
+      const entries = PROFILE_KEYS.filter((k) => bag[k] != null).map((k) => [k, bag[k]] as [string, string]);
+      await AsyncStorage.multiSet(entries);
+      return { user: bag[USER_KEY] ? JSON.parse(bag[USER_KEY]) : undefined };
+    } catch {
+      return null;
+    }
+  };
+
   // Email or phone + password. Checks the credentials, then signs in with the session it gets back.
   const loginWithPassword = async ({ identifier, password }: { identifier: string; password: string }) => {
     let session: Session;
@@ -138,14 +195,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return saved;
   };
 
+  // Logout ends the session only. The profile is saved under the phone number first, so the same
+  // person is not asked for their details again, and a different person never sees them.
   const signOut = async () => {
+    await archiveCurrentProfile();
     await clearToken();
-    await AsyncStorage.multiRemove([USER_KEY, PENDING_AVATAR_KEY, 'setu_profile', 'setu_builder_answers', 'profileBuilder:v1', 'setu_open_builder']);
+    await AsyncStorage.multiRemove([USER_KEY, PENDING_AVATAR_KEY, ...PROFILE_KEYS, 'setu_open_builder']);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, loginWithPassword, updateName, updateAvatar, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, loginWithPassword, restoreProfile, updateName, updateAvatar, signOut }}>
       {children}
     </AuthContext.Provider>
   );

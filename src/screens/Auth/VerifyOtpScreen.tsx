@@ -21,7 +21,7 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
   const [attempts, setAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
+  const { signIn, restoreProfile } = useAuth();
   const locked = attempts >= MAX_ATTEMPTS;
 
   // 30-second resend countdown
@@ -36,11 +36,21 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
     setError('');
     try {
       const session = await verifyOtp(phone, code);
-if (session) {
-  setLoading(false);
-  navigation.navigate('OnboardingBasics', { session }); // sign-in happens at the end of onboarding
-  return;
-}
+      if (session) {
+        // Returning user: their saved profile is put back and onboarding is skipped
+        const restored = await restoreProfile(phone);
+        if (restored) {
+          const user = restored.user
+            ? { ...session.user, ...restored.user, id: session.user.id }
+            : session.user;
+          await signIn({ ...session, user });
+          return; // the navigator switches to Home once the user is set
+        }
+        // New user: sign-in happens at the end of onboarding
+        setLoading(false);
+        navigation.navigate('OnboardingBasics', { session });
+        return;
+      }
       const used = attempts + 1;
       setAttempts(used);
       setCode('');
