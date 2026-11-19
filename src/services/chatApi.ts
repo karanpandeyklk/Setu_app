@@ -1,5 +1,6 @@
 import { BASE_URL, getActive, getToken, request, USE_MOCK } from './api';
 import { delay } from './mockData';
+import { mockFaults, shouldFailSend } from './mockFaults';
 
 // ---------- Setu Guide (app -> POST /guide/chat on OUR backend, never the AI service) ----------
 export type Intent = 'conversation_ideas' | 'help_me_understand' | 'next_steps' | 'privacy_safety';
@@ -167,6 +168,7 @@ export async function getChats(filter: ChatFilter, query: string): Promise<ChatI
   // the real backend now receives the search text too (before, search only worked in mock mode)
   if (!USE_MOCK) return request(`/chats?filter=${filter}&q=${encodeURIComponent(query.trim())}`);
   await delay(500);
+  if (mockFaults.chat) throw new Error('Mock chat failure');
   return chatStore.chats
     .filter((c) =>
       (filter === 'all' || (filter === 'active' && c.online) || (filter === 'new' && c.isNew) || (filter === 'muted' && c.muted)) &&
@@ -178,12 +180,14 @@ export async function getChats(filter: ChatFilter, query: string): Promise<ChatI
 export async function getMessages(chatId: string): Promise<Msg[]> {
   if (!USE_MOCK) return request(`/chats/${chatId}/messages`); // cursor paging can be added later
   await delay(300);
+  if (mockFaults.chat) throw new Error('Mock chat failure');
   return [...(chatStore.msgs[chatId] ?? [])];
 }
 
 export async function sendMessage(chatId: string, text: string): Promise<Msg> {
   if (!USE_MOCK) return request(`/chats/${chatId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
   await delay(400);
+  if (shouldFailSend(text)) throw new Error('Mock send failure');
   const m: Msg = { id: `m${Date.now()}`, mine: true, text, time: nowTime() };
   chatStore.msgs[chatId] = [...(chatStore.msgs[chatId] ?? []), m];
   // keep the chat list in step with the thread

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buildStages, Connection, delay, NotificationItem, PausedConnection, Person, ReceivedRequest, SentRequest, store } from './mockData';
+import { mockFaults } from './mockFaults';
 
 // Flip USE_MOCK to false when Baharath's backend is ready.
 export const USE_MOCK = true;
@@ -244,6 +245,7 @@ export async function toggleBookmark(id: string): Promise<boolean> {
 
 // ---------- Notifications (not in the v0 contract: confirm with Bharrath) ----------
 // Mock notifications are built from the current requests and connections, so they always match the other screens.
+// Test errors in mock mode: mockFaults.notifications = true (browser console on web).
 function buildNotifications(): NotificationItem[] {
   const items: Omit<NotificationItem, 'unread'>[] = [
     ...store.received.map((r) => ({
@@ -262,18 +264,22 @@ function buildNotifications(): NotificationItem[] {
 export async function getNotifications(): Promise<NotificationItem[]> {
   if (!USE_MOCK) return request('/notifications');
   await delay();
+  if (mockFaults.notifications) throw new Error('Mock notifications failure');
   return buildNotifications();
 }
+// Not switched by mockFaults: Home also uses this, and a notification test should not break Home.
 export async function getUnreadCount(): Promise<number> {
   if (!USE_MOCK) return (await request<{ count: number }>('/notifications/unread-count')).count;
   return buildNotifications().filter((n) => n.unread).length;
 }
 export async function markNotificationRead(id: string): Promise<void> {
   if (!USE_MOCK) return request(`/notifications/${id}/read`, { method: 'POST' });
+  if (mockFaults.notifications) throw new Error('Mock notifications failure');
   if (!store.readNotifications.includes(id)) store.readNotifications.push(id);
 }
 export async function markAllNotificationsRead(): Promise<void> {
   if (!USE_MOCK) return request('/notifications/read', { method: 'POST' });
+  if (mockFaults.notifications) throw new Error('Mock notifications failure');
   store.readNotifications = buildNotifications().map((n) => n.id);
 }
 // ---- Profile save (v0 contract: PATCH /me/profile) ----
