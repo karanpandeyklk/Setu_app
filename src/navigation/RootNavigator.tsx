@@ -6,8 +6,16 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MatchProfileScreen from '../screens/Connections/MatchProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
+import PreferencesBasicScreen from '../screens/Preferences/PreferencesBasicScreen';
+import PreferencesBasic2Screen from '../screens/Preferences/PreferencesBasic2Screen';
+import PreferencesLifestyleScreen from '../screens/Preferences/PreferencesLifestyleScreen';
+import PreferencesFamilyScreen from '../screens/Preferences/PreferencesFamilyScreen';
+import TravelScreen from '../screens/ProfileBuilder/TravelScreen';
+import HobbiesScreen from '../screens/ProfileBuilder/HobbiesScreen';
 import NotificationSettingsScreen from '../screens/Settings/NotificationSettingsScreen';
+import ProfileTabsScreen from '../screens/Profile/ProfileTabsScreen';
 import AIPrivacyScreen from '../screens/Settings/AIPrivacyScreen';
+import FoodHabitsScreen from '../screens/ProfileBuilder/FoodHabitsScreen';
 import { colors } from '../theme';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
@@ -55,9 +63,13 @@ import GuideChatScreen from '../screens/Guide/GuideChatScreen';
 import HelpScreen from '../screens/Settings/HelpScreen';
 import AboutScreen from '../screens/Settings/AboutScreen';
 import ChatsScreen from '../screens/Chats/ChatsScreen';
+import DailyRoutineScreen from '../screens/ProfileBuilder/DailyRoutineScreen';
 import ChangePasswordScreen from '../screens/Settings/ChangePasswordScreen';
 import DevicesScreen from '../screens/Settings/DevicesScreen';
 import DeleteAccountScreen from '../screens/Settings/DeleteAccountScreen';
+import MusicScreen from '../screens/ProfileBuilder/MusicScreen';
+import EntertainmentScreen from '../screens/ProfileBuilder/EntertainmentScreen';
+import FitnessScreen from '../screens/ProfileBuilder/FitnessScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import ProfileDetailScreen from '../screens/Profile/ProfileDetailScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
@@ -129,9 +141,14 @@ export default function RootNavigator() {
       <Stack.Screen name="GuideChat" component={GuideChatScreen} />
       <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
       <Stack.Screen name="ChatProfile" component={ChatProfileScreen} />
+      <Stack.Screen name="ProfileTabs" component={ProfileTabsScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="EditSection" component={EditSectionScreen} />
+      <Stack.Screen name="PreferencesBasic" component={PreferencesBasicScreen} />
+      <Stack.Screen name="PreferencesBasic2" component={PreferencesBasic2Screen} />
+      <Stack.Screen name="PreferencesLifestyle" component={PreferencesLifestyleScreen} />
+      <Stack.Screen name="PreferencesFamily" component={PreferencesFamilyScreen} />
       <Stack.Screen name="MatchProfile" component={MatchProfileScreen} />
 
       {/* Settings and everything under it */}
@@ -142,7 +159,14 @@ export default function RootNavigator() {
       <Stack.Screen name="ChangePhone" component={ChangePhoneScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-      <Stack.Screen name="PasswordSecurity" component={PasswordSecurityScreen} />
+      <Stack.Screen name="PasswordSecurity" component={PasswordSecurityScreen} /> 
+      <Stack.Screen name="FoodHabits" component={FoodHabitsScreen} />
+      <Stack.Screen name="Travel" component={TravelScreen} />
+      <Stack.Screen name="Hobbies" component={HobbiesScreen} />
+      <Stack.Screen name="Music" component={MusicScreen} />
+<Stack.Screen name="Entertainment" component={EntertainmentScreen} />
+<Stack.Screen name="Fitness" component={FitnessScreen} />
+<Stack.Screen name="DailyRoutine" component={DailyRoutineScreen} />     
       <Stack.Screen name="Devices" component={DevicesScreen} />
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <Stack.Screen name="PrivacyVisibility" component={PrivacyVisibilityScreen} />

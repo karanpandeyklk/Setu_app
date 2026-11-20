@@ -35,25 +35,27 @@ export const SECTIONS: SectionDef[] = [
     { key: 'siblings', label: 'Siblings', placeholder: 'For example One younger brother', icon: 'people-outline' },
     { key: 'familyValues', label: 'Family values', placeholder: 'For example Traditional with a modern outlook', icon: 'heart-outline', multiline: true },
   ] },
-  { id: 'religion', tab: 'family', title: 'Religion & Caste', icon: 'flower-outline', desc: 'Only if you wish to share it', fields: [
-    { key: 'religion', label: 'Religion', placeholder: 'For example Hindu', icon: 'flower-outline' },
-    { key: 'caste', label: 'Caste', placeholder: 'For example Prefer not to say', icon: 'ribbon-outline' },
-  ] },
+ 
   { id: 'languages', tab: 'family', title: 'Languages', icon: 'language-outline', desc: 'Languages you speak', fields: [
     { key: 'known', label: 'Known languages', placeholder: 'For example English, Hindi, Telugu', icon: 'language-outline' },
     { key: 'comfortable', label: 'Comfortable in', placeholder: 'For example English', icon: 'chatbubbles-outline' },
   ] },
-  { id: 'involvement', tab: 'family', title: 'Family Involvement', icon: 'people-circle-outline', desc: 'When to involve your family', fields: [
-    { key: 'involvement', label: 'Family involvement', placeholder: 'For example After mutual understanding', icon: 'people-outline' },
-    { key: 'meeting', label: 'Family meeting', placeholder: 'For example Open when both are comfortable', icon: 'calendar-outline', multiline: true },
+      { id: 'involvement', tab: 'family', title: 'Family Involvement Preference', icon: 'people-circle-outline', desc: 'When to involve your family', fields: [
+    { key: 'involvement', label: 'Preferred Stage', placeholder: 'For example After mutual understanding', icon: 'people-outline' },
+    { key: 'meeting', label: 'Family Meeting', placeholder: 'For example Open when both are comfortable', icon: 'calendar-outline', multiline: true },
   ] },
 
   // ---- Preferences tab (partner preferences) ----
-  { id: 'prefBasic', tab: 'preferences', title: 'Basic', icon: 'options-outline', desc: 'Age, height and location', fields: [
-    { key: 'age', label: 'Age range', placeholder: 'For example 25 to 30 years', icon: 'calendar-outline' },
-    { key: 'height', label: 'Height', placeholder: `For example 5'4" and above`, icon: 'resize-outline' },
-    { key: 'location', label: 'Location', placeholder: 'For example Hyderabad, Bengaluru', icon: 'location-outline' },
-    { key: 'marital', label: 'Marital status', placeholder: 'For example Never married', icon: 'heart-outline' },
+   { id: 'familyBackground', tab: 'family', title: 'Family Background', icon: 'people-outline', desc: 'Your family and home', fields: [
+    { key: 'father', label: 'Father', placeholder: 'For example Businessman', icon: 'man-outline' },
+    { key: 'mother', label: 'Mother', placeholder: 'For example Homemaker', icon: 'woman-outline' },
+    { key: 'familyType', label: 'Family Type', placeholder: 'For example Nuclear family', icon: 'home-outline' },
+    { key: 'siblings', label: 'Siblings', placeholder: 'For example One younger brother', icon: 'people-outline' },
+    { key: 'caste', label: 'Caste', placeholder: 'For example Prefer not to say', icon: 'ribbon-outline' },
+    { key: 'subcaste', label: 'Sub-caste (Optional)', placeholder: 'For example Not specified', icon: 'ribbon-outline' },
+    { key: 'location', label: 'Location', placeholder: 'For example Hyderabad, Telangana', icon: 'location-outline' },
+    { key: 'familyValues', label: 'Family Values', placeholder: 'For example Traditional with a modern outlook', icon: 'heart-outline', multiline: true },
+    { key: 'note', label: 'Family note', placeholder: 'For example My family is supportive of my choices', icon: 'home-outline', multiline: true },
   ] },
   { id: 'prefLifestyle', tab: 'preferences', title: 'Lifestyle', icon: 'cafe-outline', desc: 'Food, habits and interests', fields: [
     { key: 'diet', label: 'Food preference', placeholder: 'For example Vegetarian', icon: 'restaurant-outline' },
@@ -65,6 +67,7 @@ export const SECTIONS: SectionDef[] = [
     { key: 'values', label: 'Family values', placeholder: 'For example Traditional with a modern outlook', icon: 'heart-outline', multiline: true },
     { key: 'living', label: 'Living arrangement', placeholder: 'For example Near family', icon: 'location-outline' },
   ] },
+  
   { id: 'prefValues', tab: 'preferences', title: 'Values & Outlook', icon: 'compass-outline', desc: 'What matters most to you', fields: [
     { key: 'outlook', label: 'Values & outlook', placeholder: 'For example Honesty and open communication', icon: 'compass-outline', multiline: true },
   ] },
@@ -78,8 +81,8 @@ const DEMO: SectionValues = {
   interests: { food: 'Vegetarian', travel: 'Mountains and heritage towns', hobbies: 'Painting, cooking', music: 'Indie, classical', movies: 'Drama, documentaries', fitness: 'Yoga, 4 times a week' },
   routine: { wake: '6:30 AM', work: '9:30 AM to 6:00 PM', evening: 'Walk, cook, read', weekends: 'Family and friends' },
   values: { values: 'Honesty, respect, open communication, family-oriented' },
-  familyBackground: { father: 'Retired engineer', mother: 'Teacher', familyType: 'Nuclear family', siblings: 'One elder sister', familyValues: 'Close-knit, respectful and open-minded' },
-  religion: { religion: 'Hindu', caste: 'Prefer not to say' },
+    familyBackground: { father: 'Businessman', mother: 'Homemaker', familyType: 'Nuclear Family', siblings: 'Younger Brother (Studying)', caste: 'Kamma', subcaste: 'Not specified', location: 'Menek Chowk, Gujarat', familyValues: 'Traditional with modern outlook, respect, togetherness', note: 'My family is supportive of my personal and professional choices and values open communication.' },
+  
   languages: { known: 'Hindi, English, Marathi', comfortable: 'English' },
   involvement: { involvement: 'After mutual understanding', meeting: 'Open to meeting family when both are comfortable' },
   prefBasic: { age: '28 to 33 years', height: `5'8" and above`, location: 'Mumbai, Pune, Bengaluru', marital: 'Never married' },
