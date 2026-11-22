@@ -29,7 +29,7 @@ export default function DownloadDataScreen({ navigation }: any) {
 
         <View style={styles.info}>
           <View style={styles.infoIcon}><Ionicons name="information" size={12} color="#fff" /></View>
-          <Text style={styles.infoText}>You'll receive a download link via email. This may take a few minutes.</Text>
+          <Text style={styles.infoText}>You&apos;ll receive a download link via email. This may take a few minutes.</Text>
         </View>
       </ScrollView>
       <BottomButton title="Request Data" onPress={request} />

@@ -68,7 +68,7 @@ export default function HelpScreen({ navigation }: any) {
             <Ionicons name="arrow-back" size={24} color={NAVY} />
           </Pressable>
           <Text style={styles.title}>Help & Support</Text>
-          <Text style={styles.subtitle}>We're here to help.</Text>
+          <Text style={styles.subtitle}>We&apos;re here to help.</Text>
         </View>
 
         <View style={styles.card}>

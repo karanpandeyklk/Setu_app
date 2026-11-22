@@ -112,7 +112,7 @@ export default function VerifyEmailScreen({ navigation, route }: any) {
             {!!error && <Text style={styles.error}>{error}</Text>}
 
             <Text style={styles.resendRow}>
-              Didn't receive the code?{' '}
+              Didn&apos;t receive the code?{' '}
               {left > 0 && !locked ? (
                 <Text style={styles.resendBold}>Resend <Text style={styles.timer}>({mm}:{ss})</Text></Text>
               ) : (

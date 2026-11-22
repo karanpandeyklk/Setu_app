@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import AppInput from '../../components/AppInput';
 import { S, SettingsScreenLayout } from '../../components/settings/SettingsUI';
 
@@ -35,7 +35,7 @@ export default function ChangePasswordScreen({ navigation }: any) {
 
         <Text style={styles.label}>Confirm new password</Text>
         <AppInput value={confirm} onChangeText={setConfirm} secureTextEntry placeholder="Re-enter new password" />
-        {mismatch && <Text style={styles.error}>Passwords don't match</Text>}
+        {mismatch && <Text style={styles.error}>Passwords don&apos;t match</Text>}
 
         {done && <Text style={styles.success}>Password updated.</Text>}
 

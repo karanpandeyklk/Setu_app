@@ -15,7 +15,7 @@ export default function DataRequestSubmittedScreen({ navigation, route }: any) {
           <View style={styles.badge}><Ionicons name="checkmark" size={12} color="#fff" /></View>
         </View>
         <Text style={styles.title}>Data Request Submitted</Text>
-        <Text style={styles.text}>We're preparing your data. You'll receive a download link at {email}</Text>
+        <Text style={styles.text}>We&apos;re preparing your data. You&apos;ll receive a download link at {email}</Text>
       </View>
       <View style={{ paddingHorizontal: 20, height: 70 }}>
         <BottomButton

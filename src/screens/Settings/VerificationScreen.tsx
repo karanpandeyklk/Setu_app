@@ -52,7 +52,7 @@ export default function VerificationScreen({ navigation }: any) {
         <View style={styles.info}>
           <View style={styles.infoIcon}><Ionicons name="information" size={12} color="#fff" /></View>
           <Text style={styles.infoText}>
-            Verification confirms completion of a verification process; it does not guarantee a person's character, intentions, or safety.{' '}
+            Verification confirms completion of a verification process; it does not guarantee a person&apos;s character, intentions, or safety.{' '}
             <Text style={{ color: S.primary, fontWeight: '700' }}>Learn more</Text>
           </Text>
         </View>
