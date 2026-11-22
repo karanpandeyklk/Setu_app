@@ -7,6 +7,8 @@ import VerifyEmailScreen from '../screens/Settings/VerifyEmailScreen';
 import EmailUpdatedScreen from '../screens/Settings/EmailUpdatedScreen';
 import MatchProfileScreen from '../screens/Connections/MatchProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import VerifyPhoneScreen from '../screens/Settings/VerifyPhoneScreen';
+import PhoneUpdatedScreen from '../screens/Settings/PhoneUpdatedScreen';
 import DeactivateAccountScreen from '../screens/Settings/DeactivateAccountScreen';
 import ConfirmDeletionScreen from '../screens/Settings/ConfirmDeletionScreen';
 import AccountDeletedScreen from '../screens/Settings/AccountDeletedScreen';
@@ -173,6 +175,8 @@ export default function RootNavigator() {
       <Stack.Screen name="Account" component={AccountScreen} />
       <Stack.Screen name="ManageAccount" component={ManageAccountScreen} />
       <Stack.Screen name="ChangePhone" component={ChangePhoneScreen} />
+      <Stack.Screen name="VerifyPhone" component={VerifyPhoneScreen} />
+<Stack.Screen name="PhoneUpdated" component={PhoneUpdatedScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
       <Stack.Screen name="PrivacySafety" component={PrivacyVisibilityScreen} />
 <Stack.Screen name="PhoneNumber" component={PhoneNumberScreen} />
