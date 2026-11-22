@@ -166,7 +166,7 @@ const editSection = (id: string) =>
   // cards built from section definitions (Family on your own profile, Preferences of another person)
   const renderDef = (d: SectionDef, vals: Record<string, string>) => (
     <CardShell key={d.id} icon={d.icon} title={d.title} textEdit={d.tab === 'family'} onEdit={editable ? () => editSection(d.id) : undefined}>
-          {d.fields.filter((f) => f.key !== 'note').map((f, i) => <Row key={f.key} label={f.label} value={vals[f.key]} empty={emptyText} divider={d.tab === 'family' && i > 0} />)}/>)}
+                    {d.fields.filter((f) => f.key !== 'note').map((f, i) => <Row key={f.key} label={f.label} value={vals[f.key]} empty={emptyText} divider={d.tab === 'family' && i > 0} />)}
     </CardShell>
   );
 

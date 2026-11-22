@@ -6,7 +6,7 @@ import { settingsFonts } from '../../theme';
 export default function OtpBoxes({ value, onChange, length = 6 }: {
   value: string; onChange: (v: string) => void; length?: number;
 }) {
-  const ref = useRef<TextInput>(null);
+  const ref = useRef<React.ComponentRef<typeof TextInput>>(null);
   const activeIndex = Math.min(value.length, length - 1);
 
   return (
