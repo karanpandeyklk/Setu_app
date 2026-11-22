@@ -5,12 +5,12 @@ import { Card, Row, S, SettingsScreenLayout } from '../../components/settings/Se
 import { useAuth } from '../../context/AuthContext';
 
 export default function AccountScreen({ navigation }: any) {
-  const { user } = useAuth() as any;
+  const { user } = useAuth();
 
-  // Adjust these to match the fields on your real user object
-  const name: string = user?.name ?? 'Aanya K';
-  const phone: string = user?.phone ?? '+91 98765 43210';
-  const email: string = user?.email ?? 'aanya.k@example.com';
+const name = user?.name || 'Name not available';
+// TODO: show real phone/email once the user profile API (getMe) returns them
+const phone = 'Phone number not added';
+const email = 'Email not added';
   const initial = name.trim().charAt(0).toUpperCase();
 
   return (
