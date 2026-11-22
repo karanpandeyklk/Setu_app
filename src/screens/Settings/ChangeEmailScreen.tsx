@@ -1,54 +1,82 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
-import AppInput from '../../components/AppInput';
-import { S, SettingsScreenLayout } from '../../components/settings/SettingsUI';
+import { Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import ActionButton from '../../components/settings/ActionButton';
+import { S } from '../../components/settings/SettingsUI';
+import TitleBar from '../../components/settings/TitleBar';
+import VerificationNote from '../../components/settings/VerificationNote';
+import { settingsFonts } from '../../theme';
 
-export default function ChangeEmailScreen({ navigation }: any) {
+const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const noOutline: any = Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {};
+
+export default function ChangeEmailScreen({ navigation, route }: any) {
+  const adding = route.params?.mode === 'add';
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [focused, setFocused] = useState(false);
 
-  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const valid = EMAIL_OK.test(email.trim());
   const showError = email.length > 0 && !valid;
 
-  const submit = () => {
-    // TODO: call your backend to send a verification link to this address
-    setSent(true);
+  const next = () => {
+    navigation.navigate('VerifyEmail', { email: email.trim(), mode: route.params?.mode ?? 'change' });
   };
 
   return (
-    <SettingsScreenLayout
-      title="Email Address"
-      subtitle="We'll send a verification link to your new email."
-      bg="#EEF3FF"
-      onBack={() => navigation.goBack()}
-    >
-      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}>
-        <Text style={styles.label}>New email address</Text>
-        <AppInput
-          value={email}
-          onChangeText={(t) => { setEmail(t); setSent(false); }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="name@example.com"
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.wrap}>
+        <TitleBar
+          title={adding ? 'Add a Secondary Email' : 'Change Email Address'}
+          subtitle="We'll send a verification code to your new email address."
+          onBack={() => navigation.goBack()}
         />
-        {showError && <Text style={styles.error}>Enter a valid email address</Text>}
 
-        <Pressable style={[styles.btn, !valid && styles.btnOff]} disabled={!valid} onPress={submit}>
-          <Text style={styles.btnText}>Send verification link</Text>
-        </Pressable>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 26, paddingBottom: 32 }}>
+          <Text style={styles.label}>{adding ? 'Secondary Email Address' : 'New Email Address'}</Text>
 
-        {sent && <Text style={styles.success}>Link sent. Check your inbox to confirm the change.</Text>}
-      </ScrollView>
-    </SettingsScreenLayout>
+          {/* the whole box (icon + text) gets the blue border when focused */}
+          <View style={[styles.field, focused && styles.fieldOn, showError && styles.fieldError]}>
+            <View style={styles.iconTile}>
+              <Ionicons name="mail" size={18} color={S.primary} />
+            </View>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="newemail@example.com"
+              placeholderTextColor="#94A3B8"
+              accessibilityLabel="Email address"
+              style={[styles.input, noOutline]}
+            />
+          </View>
+          {showError && <Text style={styles.error}>Enter a valid email address</Text>}
+
+          <VerificationNote channel="email" />
+
+          <ActionButton title="Continue" disabled={!valid} onPress={next} style={{ marginTop: 24 }} />
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 13, fontWeight: '600', color: S.text, marginTop: 18, marginBottom: 8 },
-  error: { fontSize: 12, color: S.danger, marginTop: 6 },
-  btn: { marginTop: 24, height: 52, borderRadius: 26, backgroundColor: S.primary, alignItems: 'center', justifyContent: 'center' },
-  btnOff: { backgroundColor: '#CBD5E1' },
-  btnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  success: { fontSize: 13, color: '#16A34A', fontWeight: '600', marginTop: 16 },
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  wrap: { flex: 1, paddingHorizontal: 20 },
+  label: { fontFamily: settingsFonts.bold, fontSize: 13, color: S.text, marginBottom: 10 },
+  field: {
+    flexDirection: 'row', alignItems: 'center', minHeight: 56, borderRadius: 14, borderWidth: 1.5, borderColor: '#E3E8F0',
+    backgroundColor: '#fff', paddingHorizontal: 8,
+    shadowColor: '#0F172A', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1,
+  },
+  fieldOn: { borderColor: S.primary },
+  fieldError: { borderColor: S.danger },
+  iconTile: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#E9F1FE', alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, marginLeft: 12, fontFamily: settingsFonts.regular, fontSize: 14, color: S.text, minHeight: 44 },
+  error: { fontFamily: settingsFonts.regular, fontSize: 12, color: S.danger, marginTop: 6 },
 });

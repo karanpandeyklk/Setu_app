@@ -1,224 +1,190 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
-import Avatar from '../../components/Avatar';
-import EmptyState from '../../components/EmptyState';
-import Skeleton from '../../components/Skeleton';
-import { getJourney } from '../../services/journeyApi';
-import { Connection, StageKey, StageStatus, STAGE_LABELS } from '../../services/mockData';
-import { STAGE_LIST } from '../../services/stageContent';
-import { colors, fonts, radius, shadow, spacing } from '../../theme';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, settingsFonts as fonts } from '../../theme';
 
-// The Figma frame ends after the "no rush" note. Set to false to hide the Setu Guide help tiles below it.
-const SHOW_GUIDE_HELP = true;
+const NAVY = '#0F1B3D';
+const GREY = '#7B8498';
 
-const HELP = [
-  { icon: 'search-outline', label: 'Understand' }, { icon: 'create-outline', label: 'Reflect' },
-  { icon: 'chatbubbles-outline', label: 'Discuss' }, { icon: 'compass-outline', label: 'Navigate' },
+// Sample data. Replace with the real journey from your backend.
+const STEPS = ['Connect', 'Understand', 'Reflect', 'Discuss', 'Agree', 'Family', 'Reflect Again', 'Decision'];
+const CURRENT = 1; // index of the current step ("Understand")
+const PERSON = {
+  name: 'Rohan, 27',
+  info: 'Software Engineer · Hyderabad',
+  avatar: undefined as string | undefined, // image URL if you have one
+  online: true,
+};
+
+const HELP: { title: string; text: string; icon: keyof typeof Ionicons.glyphMap; tint: string; bg: string; to: string }[] = [
+  { title: 'Understand', text: 'Learn about each other, values and lifestyle.', icon: 'book', tint: '#2563EB', bg: '#E3ECFF', to: 'Guide' },
+  { title: 'Reflect', text: 'Explore your thoughts and feelings privately.', icon: 'heart-outline', tint: '#EF4444', bg: '#FDE2E2', to: 'ReflectIntro' },
+  { title: 'Discuss', text: 'Get conversation ideas for important topics.', icon: 'chatbox-ellipses-outline', tint: '#7C3AED', bg: '#EDE9FE', to: 'Guide' },
+  { title: 'Navigate', text: 'Get help with next steps, privacy, safety and more.', icon: 'compass-outline', tint: '#16A34A', bg: '#DCFCE7', to: 'Guide' },
 ];
-const RAIL = '#D5DCE8';
 
 export default function JourneyScreen({ navigation }: any) {
-  const [conn, setConn] = useState<Connection | null>(null);
-  const [stages, setStages] = useState<{ key: string; status: StageStatus }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true); setError(false);
-    try { const j = await getJourney(); setConn(j.connection); setStages(j.stages); } catch { setError(true); }
-    setLoading(false);
-  }, []);
-  useFocusEffect(useCallback(() => { load(); }, [load]));
-
-    const open = (key: StageKey, status?: string) => {
-    const params = { stage: key, match: conn?.name ?? '' };
-    if (key === 'reflect' && status === 'completed') return navigation.navigate('ReflectResults', params);
-    navigation.navigate(key === 'reflect' ? 'ReflectIntro' : 'Stage', params);
-  };
-  const askGuide = () => navigation.navigate('Guide');
+  const go = (name: string, params?: object) => () => navigation.navigate(name, params);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Top bar: back arrow and centered title, like Figma */}
-      <View style={styles.top}>
-        <Pressable onPress={() => navigation.navigate('Home')} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Back">
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </Pressable>
-        <Text style={styles.topTitle} numberOfLines={1}>{conn ? `Your Journey with ${conn.name}` : 'Your Journey'}</Text>
-        <View style={styles.iconBtn} />
-      </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Setu Guide</Text>
+            <Text style={styles.subtitle}>Your companion for a thoughtful and meaningful journey.</Text>
+          </View>
+          <Pressable onPress={go('Notifications')} hitSlop={10} accessibilityLabel="Notifications" style={styles.bell}>
+            <Ionicons name="notifications-outline" size={22} color={NAVY} />
+            <View style={styles.bellDot} />
+          </Pressable>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {loading ? (
-          <View style={{ gap: spacing.lg }}><Skeleton height={80} /><Skeleton height={90} /><Skeleton height={380} /></View>
-        ) : error ? (
-          <EmptyState icon="cloud-offline-outline" title="Couldn't load your journey" description="Check your connection and try again." actionLabel="Try again" onAction={load} />
-        ) : !conn ? (
-          <EmptyState icon="people-outline" title="No journey yet" description="Accept a request to begin a journey with someone." actionLabel="Find people" onAction={() => navigation.navigate('Connections')} />
-        ) : (
-          <>
-            {/* Match */}
-            <View style={styles.matchRow}>
-              <Avatar size={56} name={conn.name} online={conn.online} />
-              <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <Text style={styles.name}>{conn.name}, {conn.age}</Text>
-                <Text style={styles.muted}>{conn.profession} · {conn.location.split(',')[0]}</Text>
-                <View style={styles.connected}>
-                  <Ionicons name="checkmark-circle" size={15} color={colors.success} />
-                  <Text style={styles.connectedText}>Connected</Text>
+        {/* Hero */}
+        <View style={styles.hero}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.heroTitle}>Build understanding.{'\n'}At your own pace.</Text>
+            <Text style={styles.heroText}>Get guidance, conversation ideas and helpful insights to know each other better.</Text>
+          </View>
+          {/* Replace with the Figma illustration: <Image source={require('../../../assets/guide-hero.png')} style={styles.heroImg} /> */}
+          <View style={styles.heroArt}>
+            <Ionicons name="sparkles" size={34} color="#2563EB" />
+          </View>
+        </View>
+
+        {/* Active journey */}
+        <View style={styles.rowHead}>
+          <Text style={styles.section}>Your Active Journey</Text>
+          <Pressable onPress={go('Connections')} hitSlop={8}>
+            <Text style={styles.seeAll}>See all →</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.card}>
+          <Pressable style={styles.person} onPress={go('ChatProfile')}>
+            <View>
+              {PERSON.avatar ? (
+                <Image source={{ uri: PERSON.avatar }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarFallback]}>
+                  <Text style={styles.avatarText}>{PERSON.name.charAt(0)}</Text>
                 </View>
-              </View>
-              <Pressable onPress={() => setMenuOpen(!menuOpen)} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="More options">
-                <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
-              </Pressable>
+              )}
+              {PERSON.online && <View style={styles.online} />}
             </View>
-            {menuOpen && (
-              <Pressable
-                style={styles.menu}
-                onPress={() => { setMenuOpen(false); navigation.navigate('MatchProfile', { personId: conn.id }); }}
-                accessibilityRole="button"
-                accessibilityLabel={`View ${conn.name}'s profile`}
-              >
-                <Ionicons name="person-outline" size={18} color={colors.text} />
-                <Text style={styles.menuText}>View profile</Text>
-              </Pressable>
-            )}
-
-            {/* Banner */}
-            <View style={styles.banner}>
-              <View style={{ flex: 1, paddingRight: 90 }}>
-                <Text style={styles.bannerTitle}>Every meaningful relationship grows step by step.</Text>
-                <Text style={styles.bannerSub}>Take the time you need. Setu Guide is here to support you.</Text>
-              </View>
-              <View style={styles.art} pointerEvents="none">
-                <Ionicons name="triangle" size={72} color="#C4D6F4" style={{ position: 'absolute', right: 34, bottom: -6 }} />
-                <Ionicons name="triangle" size={52} color="#9DB9EA" style={{ position: 'absolute', right: 2, bottom: -6 }} />
-              </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{PERSON.name}</Text>
+              <Text style={styles.info}>{PERSON.info}</Text>
             </View>
+            <Ionicons name="chevron-forward" size={18} color="#B6BFCC" />
+          </Pressable>
 
-            {/* Vertical stepper with a connected rail */}
-            <View style={{ marginTop: spacing.lg }}>
-              {stages.map((s, i) => {
-                const key = s.key as StageKey;
-                const info = STAGE_LIST[key];
-                const first = i === 0;
-                const last = i === stages.length - 1;
-                const completed = s.status === 'completed';
-                const isActive = s.status === 'active';
-                const locked = s.status === 'locked';
-                const prevDone = !first && stages[i - 1].status === 'completed';
-
-                return (
-                  <Pressable
-                    key={s.key}
-                        disabled={!isActive && !(completed && key === 'reflect')}
-    onPress={() => open(key, s.status)}
-    accessibilityState={{ disabled: !isActive && !(completed && key === 'reflect') }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${STAGE_LABELS[key]}, ${s.status}`}
-                    style={[styles.stageRow, isActive && styles.stageRowActive]}
-                  >
-                    <View style={styles.rail}>
-                      <View style={[styles.railLine, { backgroundColor: first ? 'transparent' : prevDone ? colors.success : RAIL }]} />
-                      <View style={[styles.node, completed && { backgroundColor: colors.success }, isActive && { backgroundColor: colors.primary }, locked && { backgroundColor: '#E8EDF5' }]}>
-                        {completed || isActive ? (
-                          <Ionicons name="checkmark" size={18} color="#fff" />
-                        ) : (
-                          <Ionicons name={info.icon as any} size={16} color={colors.muted} />
-                        )}
-                      </View>
-                      <View style={[styles.railLine, { backgroundColor: last ? 'transparent' : completed ? colors.success : RAIL }]} />
-                    </View>
-
-                    <View style={[styles.stageText, locked && { opacity: 0.6 }]}>
-                      <Text style={[styles.stageTitle, isActive && { color: colors.primary }]}>{STAGE_LABELS[key]}</Text>
-                      <Text style={styles.stageDesc}>{info.text}</Text>
-                    </View>
-
-                    <View style={styles.status}>
-                      {isActive ? (
-                        <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-                      ) : (
-                        <Text style={styles.statusText}>{completed ? 'Completed' : 'Locked'}</Text>
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Note */}
-            <View style={styles.note}>
-              <MaterialCommunityIcons name="infinity" size={22} color={colors.primary} />
-              <Text style={styles.noteText}>You can pause, take more time, or revisit any stage. There is no rush.</Text>
-            </View>
-
-            {SHOW_GUIDE_HELP && (
-              <>
-                <Text style={styles.section}>How Setu Guide can help you</Text>
-                <View style={styles.grid}>
-                  {HELP.map((h) => (
-                    <Pressable key={h.label} style={[styles.gridItem, shadow.card]} onPress={askGuide} accessibilityRole="button" accessibilityLabel={h.label}>
-                      <Ionicons name={h.icon as any} size={24} color={colors.primary} />
-                      <Text style={styles.gridText}>{h.label}</Text>
-                    </Pressable>
-                  ))}
+          {/* Stepper */}
+          <View style={styles.stepper}>
+            {STEPS.map((label, i) => {
+              const done = i < CURRENT;
+              const current = i === CURRENT;
+              return (
+                <View key={label} style={styles.step}>
+                  {i < STEPS.length - 1 && <View style={[styles.line, i < CURRENT && styles.lineDone]} />}
+                  <View style={[styles.dot, (done || current) && styles.dotOn, current && styles.dotCurrent]}>
+                    {(done || current) && <Ionicons name="checkmark" size={10} color="#fff" />}
+                  </View>
+                  <Text style={[styles.stepLabel, current && styles.stepLabelOn]} numberOfLines={2}>{label}</Text>
                 </View>
-                <Pressable style={[styles.pill, shadow.button]} onPress={askGuide} accessibilityRole="button" accessibilityLabel="Ask Setu Guide">
-                  <Ionicons name="sparkles" size={18} color="#fff" />
-                  <Text style={styles.pillText}>Ask Setu Guide</Text>
-                </Pressable>
-              </>
-            )}
-          </>
-        )}
+              );
+            })}
+          </View>
+
+          {/* Current stage */}
+          <View style={styles.stage}>
+            <View style={styles.stageHead}>
+              <View style={styles.bulb}><Ionicons name="bulb-outline" size={18} color="#2563EB" /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.stageLabel}>CURRENT STAGE</Text>
+                <Text style={styles.stageName}>{STEPS[CURRENT]}</Text>
+              </View>
+            </View>
+            <Text style={styles.stageText}>
+              Learn more about each other through meaningful conversation and shared perspectives.
+            </Text>
+            <Pressable style={styles.cta} onPress={go('Stage', { stage: STEPS[CURRENT] })}>
+              <Text style={styles.ctaText}>Continue Journey  →</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* How Setu Guide can help you */}
+        <Text style={[styles.section, { marginTop: 22, marginBottom: 12 }]}>How Setu Guide can help you</Text>
+        <View style={styles.grid}>
+          {HELP.map((h) => (
+            <Pressable key={h.title} style={styles.help} onPress={go(h.to, h.to === 'Guide' ? { topic: h.title } : undefined)}>
+              <View style={[styles.helpIcon, { backgroundColor: h.bg }]}>
+                <Ionicons name={h.icon} size={18} color={h.tint} />
+              </View>
+              <Text style={styles.helpTitle}>{h.title}</Text>
+              <Text style={styles.helpText}>{h.text}</Text>
+            </Pressable>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm, minHeight: 52 },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  topTitle: { flex: 1, textAlign: 'center', fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 120 },
+  safe: { flex: 1, backgroundColor: '#F7F9FD' },
+  content: { paddingHorizontal: 18, paddingBottom: 24 },
 
-  matchRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
-  name: { fontFamily: fonts.bold, fontSize: 18, color: colors.text },
-  muted: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 1 },
-  connected: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  connectedText: { fontFamily: fonts.medium, fontSize: 12, color: colors.success, marginLeft: 4 },
-  menu: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', minHeight: 44, backgroundColor: '#fff', borderRadius: radius.md, paddingHorizontal: spacing.lg, borderWidth: 1, borderColor: colors.border, marginTop: spacing.xs },
-  menuText: { fontFamily: fonts.medium, fontSize: 13, color: colors.text, marginLeft: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 10 },
+  title: { fontFamily: fonts.bold, fontSize: 26, color: NAVY },
+  subtitle: { fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 18, color: GREY, marginTop: 4, paddingRight: 12 },
+  bell: { padding: 4, marginTop: 4 },
+  bellDot: { position: 'absolute', top: 4, right: 4, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 1.5, borderColor: '#F7F9FD' },
 
-  banner: { flexDirection: 'row', backgroundColor: '#E8F0FD', borderRadius: radius.lg, padding: spacing.lg, minHeight: 92, overflow: 'hidden', marginTop: spacing.lg },
-  bannerTitle: { fontFamily: fonts.bold, fontSize: 14, lineHeight: 19, color: colors.text },
-  bannerSub: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 17, color: colors.muted, marginTop: 4 },
-  art: { position: 'absolute', right: 0, bottom: 0, width: 110, height: 70 },
+  hero: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F1FF', borderWidth: 1, borderColor: '#D6E6FF', borderRadius: 20, padding: 18, marginTop: 18 },
+  heroTitle: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22, color: NAVY },
+  heroText: { fontFamily: fonts.regular, fontSize: 11.5, lineHeight: 17, color: GREY, marginTop: 8, paddingRight: 8 },
+  heroArt: { width: 86, height: 86, borderRadius: 43, backgroundColor: '#D6E6FF', alignItems: 'center', justifyContent: 'center' },
+  heroImg: { width: 96, height: 96 },
 
-  stageRow: { flexDirection: 'row', alignItems: 'stretch', minHeight: 64, borderRadius: radius.md },
-  stageRowActive: { backgroundColor: colors.primarySoft, borderWidth: 1, borderColor: '#CFE0FB' },
-  rail: { width: 44, alignItems: 'center', alignSelf: 'stretch' },
-  railLine: { flex: 1, width: 2 },
-  node: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  stageText: { flex: 1, paddingVertical: spacing.md, paddingRight: spacing.sm, justifyContent: 'center' },
-  stageTitle: { fontFamily: fonts.semibold, fontSize: 14.5, color: colors.text },
-  stageDesc: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 16, color: colors.muted, marginTop: 2 },
-  status: { minWidth: 56, justifyContent: 'center', alignItems: 'flex-end', paddingRight: spacing.md },
-  statusText: { fontFamily: fonts.regular, fontSize: 11, color: colors.muted },
+  rowHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, marginBottom: 12 },
+  section: { fontFamily: fonts.bold, fontSize: 15, color: NAVY },
+  seeAll: { fontFamily: fonts.semibold, fontSize: 12, color: '#2563EB' },
 
-  note: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FD', borderRadius: radius.md, padding: spacing.lg, marginTop: spacing.lg },
-  noteText: { flex: 1, fontFamily: fonts.regular, fontSize: 12.5, lineHeight: 18, color: colors.muted, marginLeft: spacing.md },
+  card: { backgroundColor: '#fff', borderRadius: 20, padding: 14, borderWidth: 1, borderColor: '#EDF1F8', shadowColor: '#1E3A8A', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  person: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: { width: 46, height: 46, borderRadius: 23 },
+  avatarFallback: { backgroundColor: '#E3ECFF', alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: fonts.bold, fontSize: 18, color: '#2563EB' },
+  online: { position: 'absolute', right: 0, bottom: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#fff' },
+  name: { fontFamily: fonts.bold, fontSize: 15, color: NAVY },
+  info: { fontFamily: fonts.regular, fontSize: 11.5, color: GREY, marginTop: 2 },
 
-  section: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text, marginTop: spacing.xl, marginBottom: spacing.md },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  gridItem: { width: '48%', backgroundColor: '#fff', borderRadius: radius.lg, padding: spacing.lg, minHeight: 80, justifyContent: 'center' },
-  gridText: { fontFamily: fonts.medium, fontSize: 14, color: colors.text, marginTop: spacing.sm },
-  pill: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: 22, minHeight: 48, marginTop: spacing.xl },
-  pillText: { fontFamily: fonts.semibold, fontSize: 15, color: '#fff', marginLeft: 8 },
+  stepper: { flexDirection: 'row', marginTop: 18, marginBottom: 14 },
+  step: { flex: 1, alignItems: 'center' },
+  line: { position: 'absolute', top: 9, left: '50%', right: '-50%', height: 2, backgroundColor: '#E3E8F2' },
+  lineDone: { backgroundColor: '#2563EB' },
+  dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#D5DCE8', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  dotOn: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
+  dotCurrent: { shadowColor: '#2563EB', shadowOpacity: 0.35, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
+  stepLabel: { fontFamily: fonts.regular, fontSize: 8, lineHeight: 10, color: GREY, textAlign: 'center', marginTop: 5 },
+  stepLabelOn: { fontFamily: fonts.bold, color: NAVY },
+
+  stage: { backgroundColor: '#EEF4FF', borderRadius: 16, padding: 14 },
+  stageHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  bulb: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  stageLabel: { fontFamily: fonts.semibold, fontSize: 9.5, letterSpacing: 0.6, color: GREY },
+  stageName: { fontFamily: fonts.bold, fontSize: 16, color: NAVY, marginTop: 1 },
+  stageText: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: '#5B657A', marginTop: 10 },
+  cta: { height: 44, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginTop: 14 },
+  ctaText: { fontFamily: fonts.bold, fontSize: 14, color: '#fff' },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  help: { width: '48%', flexGrow: 1, backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#EDF1F8', shadowColor: '#1E3A8A', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
+  helpIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  helpTitle: { fontFamily: fonts.bold, fontSize: 14, color: NAVY, marginTop: 10 },
+  helpText: { fontFamily: fonts.regular, fontSize: 11, lineHeight: 16, color: GREY, marginTop: 3 },
 });

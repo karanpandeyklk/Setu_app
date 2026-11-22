@@ -3,8 +3,13 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import VerifyEmailScreen from '../screens/Settings/VerifyEmailScreen';
+import EmailUpdatedScreen from '../screens/Settings/EmailUpdatedScreen';
 import MatchProfileScreen from '../screens/Connections/MatchProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import DeactivateAccountScreen from '../screens/Settings/DeactivateAccountScreen';
+import ConfirmDeletionScreen from '../screens/Settings/ConfirmDeletionScreen';
+import AccountDeletedScreen from '../screens/Settings/AccountDeletedScreen';
 import { useAuth } from '../context/AuthContext';
 import PreferencesBasicScreen from '../screens/Preferences/PreferencesBasicScreen';
 import PreferencesBasic2Screen from '../screens/Preferences/PreferencesBasic2Screen';
@@ -58,6 +63,12 @@ import ReflectPrivacyScreen from '../screens/Journey/ReflectPrivacyScreen';
 import ChatThreadScreen from '../screens/Chats/ChatThreadScreen';
 import ChatProfileScreen from '../screens/Chats/ChatProfileScreen';
 import ReflectQuestionScreen from '../screens/Journey/ReflectQuestionScreen';
+import EditPersonalInfoScreen from '../screens/Settings/EditPersonalInfoScreen';
+import PhoneNumberScreen from '../screens/Settings/PhoneNumberScreen';
+import EmailAddressScreen from '../screens/Settings/EmailAddressScreen';
+import DownloadDataScreen from '../screens/Settings/DownloadDataScreen';
+import DataRequestSubmittedScreen from '../screens/Settings/DataRequestSubmittedScreen';
+
 import ReflectDoneScreen from '../screens/Journey/ReflectDoneScreen';
 import GuideChatScreen from '../screens/Guide/GuideChatScreen';
 import HelpScreen from '../screens/Settings/HelpScreen';
@@ -145,6 +156,11 @@ export default function RootNavigator() {
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="EditSection" component={EditSectionScreen} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+      <Stack.Screen name="DeactivateAccount" component={DeactivateAccountScreen} />
+<Stack.Screen name="ConfirmDeletion" component={ConfirmDeletionScreen} />
+<Stack.Screen name="AccountDeleted" component={AccountDeletedScreen} />
+<Stack.Screen name="EmailUpdated" component={EmailUpdatedScreen} />
       <Stack.Screen name="PreferencesBasic" component={PreferencesBasicScreen} />
       <Stack.Screen name="PreferencesBasic2" component={PreferencesBasic2Screen} />
       <Stack.Screen name="PreferencesLifestyle" component={PreferencesLifestyleScreen} />
@@ -158,6 +174,13 @@ export default function RootNavigator() {
       <Stack.Screen name="ManageAccount" component={ManageAccountScreen} />
       <Stack.Screen name="ChangePhone" component={ChangePhoneScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
+      <Stack.Screen name="PrivacySafety" component={PrivacyVisibilityScreen} />
+<Stack.Screen name="PhoneNumber" component={PhoneNumberScreen} />
+<Stack.Screen name="EmailAddress" component={EmailAddressScreen} />
+<Stack.Screen name="EmailChange" component={ChangeEmailScreen} />
+<Stack.Screen name="EditPersonalInfo" component={EditPersonalInfoScreen} />
+<Stack.Screen name="DownloadData" component={DownloadDataScreen} />
+<Stack.Screen name="DataRequestSubmitted" component={DataRequestSubmittedScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="PasswordSecurity" component={PasswordSecurityScreen} /> 
       <Stack.Screen name="FoodHabits" component={FoodHabitsScreen} />

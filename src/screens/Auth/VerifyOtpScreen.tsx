@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import Keypad from '../../components/Keypad';
 import OtpInput from '../../components/OtpInput';
+import { useAuth } from '../../context/AuthContext';
 import { sendOtp, verifyOtp } from '../../services/api';
 import { colors, fonts, radius, spacing } from '../../theme';
 
@@ -20,6 +21,7 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
   const [attempts, setAttempts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { signIn, restoreProfile } = useAuth();
   const locked = attempts >= MAX_ATTEMPTS;
 
   // 30-second resend countdown
@@ -34,11 +36,26 @@ export default function VerifyOtpScreen({ navigation, route }: any) {
     setError('');
     try {
       const session = await verifyOtp(phone, code);
-if (session) {
-  setLoading(false);
-  navigation.navigate('OnboardingBasics', { session }); // sign-in happens at the end of onboarding
-  return;
-}
+      if (session) {
+        // Returning user: onboarding was already completed for this phone, so go straight in (Home)
+        const returning = await restoreProfile(phone);
+        if (returning) {
+          const saved: any = returning.user ?? {};
+          await signIn({
+            ...session,
+            user: {
+              ...session.user,
+              ...(saved.name ? { name: saved.name } : {}),
+              ...(saved.avatar ? { avatar: saved.avatar } : {}),
+            },
+          });
+          return;
+        }
+        // New user: collect name, date of birth and gender
+        setLoading(false);
+        navigation.navigate('OnboardingBasics', { session }); // sign-in happens at the end of onboarding
+        return;
+      }
       const used = attempts + 1;
       setAttempts(used);
       setCode('');
@@ -76,7 +93,7 @@ if (session) {
       </Pressable>
 
       <Text style={styles.title}>Verify your number</Text>
-      <Text style={styles.sub}>We&apos;ve sent a 6-digit code to</Text>
+      <Text style={styles.sub}>We've sent a 6-digit code to</Text>
       <Text style={styles.phone}>{masked}</Text>
 
       {/* Demo mode only: a real SMS needs a backend and an SMS provider */}
@@ -95,7 +112,7 @@ if (session) {
       {!!error && <Text style={styles.error}>{error}</Text>}
 
       <Text style={styles.resend}>
-        Didn&apos;t receive the code?{' '}
+        Didn't receive the code?{' '}
         {seconds > 0 && !locked ? (
           <Text style={styles.bold}>
             Resend <Text style={styles.timer}>({mm}:{ss})</Text>

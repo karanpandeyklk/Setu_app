@@ -227,7 +227,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardName}>Need help with your next step?</Text>
                 <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Get personalised guidance on conversations, family involvement and next steps.</Text>
-                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('Journey')} style={{ alignSelf: 'flex-start' }} />
+                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('Guide')} style={{ alignSelf: 'flex-start' }} />
               </View>
               <View style={styles.art}><Ionicons name="sparkles" size={36} color={colors.primary} /></View>
             </Card>
