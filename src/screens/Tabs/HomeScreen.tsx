@@ -103,11 +103,7 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-  // TEMP DEBUG: shows which fields really exist. Remove once photos show up.
-  if (__DEV__) {
-    console.log('HOME USER KEYS', Object.keys(user ?? {}), 'photo:', myPhoto ?? '(none)');
-    console.log('HOME CONNECTION KEYS', Object.keys(cc ?? {}), 'photo:', ccPhoto ?? '(none)');
-  }
+
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -123,7 +119,13 @@ export default function HomeScreen({ navigation }: any) {
             <Ionicons name="notifications-outline" size={24} color={colors.text} />
             {unread > 0 && <View style={styles.badge} />}
           </Pressable>
-          <Pressable onPress={changePhoto} accessibilityRole="button" accessibilityLabel="Change profile photo" hitSlop={6}>
+        <Pressable
+  onPress={() => navigation.navigate('Profile')}
+  onLongPress={changePhoto}
+  accessibilityRole="button"
+  accessibilityLabel="Open profile"
+  hitSlop={6}
+>
             <Avatar size={40} uri={myPhoto} label={user?.name || firstName || 'Me'} />
           </Pressable>
         </View>
