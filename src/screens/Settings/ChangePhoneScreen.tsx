@@ -6,7 +6,7 @@ import { S, SettingsScreenLayout } from '../../components/settings/SettingsUI';
 export default function ChangePhoneScreen({ navigation }: any) {
   const [phone, setPhone] = useState('');
   const [focused, setFocused] = useState(false);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const phoneOk = phone.length === 10;
 
   const onContinue = () => {

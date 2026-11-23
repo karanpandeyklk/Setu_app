@@ -38,19 +38,19 @@ export default function AccountScreen({ navigation }: any) {
             icon="person"
             title="Edit Personal Information"
             subtitle="Name, date of birth, gender, marital status"
-            onPress={() => navigation.navigate('EditProfile')}
+            onPress={() => navigation.navigate('EditPersonalInfo')}
           />
           <Row
             icon="call"
             title="Phone Number"
             subtitle={phone}
-            onPress={() => navigation.navigate('ChangePhone')}
+            onPress={() => navigation.navigate('PhoneNumber')}
           />
           <Row
             icon="mail"
             title="Email Address"
             subtitle={email}
-            onPress={() => navigation.navigate('ChangeEmail')}
+            onPress={() => navigation.navigate('EmailAddress')}
           />
           <Row
             icon="location"

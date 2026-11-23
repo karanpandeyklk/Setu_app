@@ -35,6 +35,10 @@ import BottomTabBar from './BottomTabBar';
 import ChatSettingsScreen from '../screens/Settings/ChatSettingsScreen';
 import SettingsScreen from '../screens/Settings/SettingsScreen';
 import VerificationScreen from '../screens/Settings/VerificationScreen';
+import ReportSafetyScreen from '../screens/Settings/ReportSafetyScreen';
+import ReportReasonScreen from '../screens/Settings/ReportReasonScreen';
+import ReportDetailsScreen from '../screens/Settings/ReportDetailsScreen';
+import ReportSubmittedScreen from '../screens/Settings/ReportSubmittedScreen';
 import PrivacySafetyScreen from '../screens/Settings/PrivacyVisibilityScreen';
 import EditSectionScreen from '../screens/Profile/EditSectionScreen';
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
@@ -70,7 +74,9 @@ import PhoneNumberScreen from '../screens/Settings/PhoneNumberScreen';
 import EmailAddressScreen from '../screens/Settings/EmailAddressScreen';
 import DownloadDataScreen from '../screens/Settings/DownloadDataScreen';
 import DataRequestSubmittedScreen from '../screens/Settings/DataRequestSubmittedScreen';
-
+import UserUnblockedScreen from '../screens/Settings/UserUnblockedScreen';
+import ProfileSharingScreen from '../screens/Settings/ProfileSharingScreen';
+import WhoCanSeeProfileScreen from '../screens/Settings/WhoCanSeeProfileScreen';
 import ReflectDoneScreen from '../screens/Journey/ReflectDoneScreen';
 import GuideChatScreen from '../screens/Guide/GuideChatScreen';
 import HelpScreen from '../screens/Settings/HelpScreen';
@@ -78,6 +84,7 @@ import AboutScreen from '../screens/Settings/AboutScreen';
 import ChatsScreen from '../screens/Chats/ChatsScreen';
 import DailyRoutineScreen from '../screens/ProfileBuilder/DailyRoutineScreen';
 import ChangePasswordScreen from '../screens/Settings/ChangePasswordScreen';
+
 import DevicesScreen from '../screens/Settings/DevicesScreen';
 import DeleteAccountScreen from '../screens/Settings/DeleteAccountScreen';
 import MusicScreen from '../screens/ProfileBuilder/MusicScreen';
@@ -175,6 +182,10 @@ export default function RootNavigator() {
       <Stack.Screen name="Account" component={AccountScreen} />
       <Stack.Screen name="ManageAccount" component={ManageAccountScreen} />
       <Stack.Screen name="ChangePhone" component={ChangePhoneScreen} />
+      <Stack.Screen name="SafetyResources" component={ReportSafetyScreen} />
+<Stack.Screen name="ReportReason" component={ReportReasonScreen} />
+<Stack.Screen name="ReportDetails" component={ReportDetailsScreen} />
+<Stack.Screen name="ReportSubmitted" component={ReportSubmittedScreen} />
       <Stack.Screen name="VerifyPhone" component={VerifyPhoneScreen} />
 <Stack.Screen name="PhoneUpdated" component={PhoneUpdatedScreen} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
@@ -198,10 +209,12 @@ export default function RootNavigator() {
       <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <Stack.Screen name="PrivacyVisibility" component={PrivacyVisibilityScreen} />
       <Stack.Screen name="DiscoverySettings" component={DiscoverySettingsScreen} />
-      <Stack.Screen name="WhoCanFindMe" component={ComingSoonScreen} />
+      <Stack.Screen name="WhoCanFindMe" component={WhoCanSeeProfileScreen} />
       <Stack.Screen name="DistanceVisibility" component={ComingSoonScreen} />
       <Stack.Screen name="AgeVisibility" component={ComingSoonScreen} />
       <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+      <Stack.Screen name="UserUnblocked" component={UserUnblockedScreen} />
+<Stack.Screen name="ProfileSharing" component={ProfileSharingScreen} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
       <Stack.Screen name="SetuGuideSettings" component={SetuGuideSettingsScreen} />
       <Stack.Screen name="AIPrivacy" component={AIPrivacyScreen} />
@@ -215,7 +228,6 @@ export default function RootNavigator() {
       <Stack.Screen name="Appearance" component={AppearanceScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="FAQs" component={FAQsScreen} />
-      <Stack.Screen name="SafetyResources" component={ComingSoonScreen} />
       <Stack.Screen name="CommunityGuidelines" component={ComingSoonScreen} />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="OurStory" component={ComingSoonScreen} />
