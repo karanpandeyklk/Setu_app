@@ -149,29 +149,33 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.section}>Current Connection</Text>
               <Text style={styles.viewAll} onPress={() => navigation.navigate('Connections', { tab: 'active' })} accessibilityRole="link">View all</Text>
             </View>
-            {cc ? (
-              <Card onPress={() => navigation.navigate('ProfileDetail', { personId: cc.id })} accessibilityLabel={`View ${cc.name}'s profile`}>
-                <View style={styles.row}>
-                  <Avatar size={84} shape="rounded" uri={ccPhoto} online={cc.online} label={cc.name} />
-                  <View style={{ flex: 1, marginLeft: spacing.lg }}>
-                    <View style={styles.tag}><Text style={styles.tagText}>{STAGE_LABELS[cc.stage]}</Text></View>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.cardName}>{cc.name}, {cc.age}</Text>
-                      {cc.verified && <Ionicons name="checkmark-circle" size={16} color={colors.primary} style={{ marginLeft: 4 }} />}
-                    </View>
-                    <View style={styles.infoRow}>
-                      <Ionicons name="location-outline" size={13} color={colors.muted} />
-                      <Text style={styles.info}>{cc.location}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                      <Ionicons name="briefcase-outline" size={13} color={colors.muted} />
-                      <Text style={styles.info}>{cc.profession}</Text>
-                    </View>
-                    <Button title="Continue" arrow small style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }} onPress={() => navigation.navigate('Journey')} />
-                  </View>
-                </View>
-              </Card>
-            ) : (
+           {cc ? (
+  <Card>
+    <View style={styles.row}>
+      <Pressable onPress={() => navigation.navigate('ProfileDetail', { personId: cc.id })} accessibilityRole="button" accessibilityLabel={`View ${cc.name}'s profile`}>
+        <Avatar size={84} shape="rounded" uri={ccPhoto} online={cc.online} label={cc.name} />
+      </Pressable>
+      <View style={{ flex: 1, marginLeft: spacing.lg }}>
+        <Pressable onPress={() => navigation.navigate('ProfileDetail', { personId: cc.id })} accessibilityRole="button" accessibilityLabel={`View ${cc.name}'s profile`}>
+          <View style={styles.tag}><Text style={styles.tagText}>{STAGE_LABELS[cc.stage]}</Text></View>
+          <View style={styles.nameRow}>
+            <Text style={styles.cardName}>{cc.name}, {cc.age}</Text>
+            {cc.verified && <Ionicons name="checkmark-circle" size={16} color={colors.primary} style={{ marginLeft: 4 }} />}
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="location-outline" size={13} color={colors.muted} />
+            <Text style={styles.info}>{cc.location}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="briefcase-outline" size={13} color={colors.muted} />
+            <Text style={styles.info}>{cc.profession}</Text>
+          </View>
+        </Pressable>
+        <Button title="Continue" arrow small style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }} onPress={() => navigation.navigate('Journey')} />
+      </View>
+    </View>
+  </Card>
+) : (
               <Card><EmptyState icon="people-outline" title="No active connection yet" description="Accept a request or send interest to begin your journey." actionLabel="Find people" onAction={() => navigation.navigate('Connections')} /></Card>
             )}
 
@@ -223,7 +227,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardName}>Need help with your next step?</Text>
                 <Text style={[styles.muted, { marginVertical: spacing.sm }]}>Get personalised guidance on conversations, family involvement and next steps.</Text>
-                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('GuideChat')} style={{ alignSelf: 'flex-start' }} />
+                <Button title="Ask Setu Guide" arrow small variant="outline" onPress={() => navigation.navigate('Guide')} style={{ alignSelf: 'flex-start' }} />
               </View>
               <View style={styles.art}><Ionicons name="sparkles" size={36} color={colors.primary} /></View>
             </Card>

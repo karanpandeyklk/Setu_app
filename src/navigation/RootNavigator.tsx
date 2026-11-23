@@ -1,17 +1,55 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import VerifyEmailScreen from '../screens/Settings/VerifyEmailScreen';
+import EmailUpdatedScreen from '../screens/Settings/EmailUpdatedScreen';
+import MatchProfileScreen from '../screens/Connections/MatchProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import VerifyPhoneScreen from '../screens/Settings/VerifyPhoneScreen';
+import PhoneUpdatedScreen from '../screens/Settings/PhoneUpdatedScreen';
+import DeactivateAccountScreen from '../screens/Settings/DeactivateAccountScreen';
+import ConfirmDeletionScreen from '../screens/Settings/ConfirmDeletionScreen';
+import AccountDeletedScreen from '../screens/Settings/AccountDeletedScreen';
 import { useAuth } from '../context/AuthContext';
+import PreferencesBasicScreen from '../screens/Preferences/PreferencesBasicScreen';
+import PreferencesBasic2Screen from '../screens/Preferences/PreferencesBasic2Screen';
+import PreferencesLifestyleScreen from '../screens/Preferences/PreferencesLifestyleScreen';
+import PreferencesFamilyScreen from '../screens/Preferences/PreferencesFamilyScreen';
+import TravelScreen from '../screens/ProfileBuilder/TravelScreen';
+import HobbiesScreen from '../screens/ProfileBuilder/HobbiesScreen';
+import NotificationSettingsScreen from '../screens/Settings/NotificationSettingsScreen';
+import ProfileTabsScreen from '../screens/Profile/ProfileTabsScreen';
+import AIPrivacyScreen from '../screens/Settings/AIPrivacyScreen';
+import FoodHabitsScreen from '../screens/ProfileBuilder/FoodHabitsScreen';
 import { colors } from '../theme';
+import LoginScreen from '../screens/Auth/LoginScreen';
+import ForgotPasswordScreen from '../screens/Auth/ForgotPasswordScreen';
+import BlockedUsersScreen from '../screens/Settings/BlockedUsersScreen';
+import ComingSoonScreen from '../screens/Settings/ComingSoonScreen';
+import PasswordSecurityScreen from '../screens/Settings/PasswordSecurityScreen';
+import AccountScreen from '../screens/Settings/AccountScreen';
+import FAQsScreen from '../screens/Settings/FAQsScreen';
 import BottomTabBar from './BottomTabBar';
+import ChatSettingsScreen from '../screens/Settings/ChatSettingsScreen';
+import SettingsScreen from '../screens/Settings/SettingsScreen';
+import VerificationScreen from '../screens/Settings/VerificationScreen';
+import ReportSafetyScreen from '../screens/Settings/ReportSafetyScreen';
+import ReportReasonScreen from '../screens/Settings/ReportReasonScreen';
+import ReportDetailsScreen from '../screens/Settings/ReportDetailsScreen';
+import ReportSubmittedScreen from '../screens/Settings/ReportSubmittedScreen';
+import PrivacySafetyScreen from '../screens/Settings/PrivacyVisibilityScreen';
+import EditSectionScreen from '../screens/Profile/EditSectionScreen';
 import WelcomeScreen from '../screens/Auth/WelcomeScreen';
 import ReflectResultsScreen from '../screens/Journey/ReflectResultsScreen';
 import CreateAccountScreen from '../screens/Auth/CreateAccountScreen';
+import LanguageScreen from '../screens/Settings/LanguageScreen';
+import AppearanceScreen from '../screens/Settings/AppearanceScreen';
 import VerifyOtpScreen from '../screens/Auth/VerifyOtpScreen';
 import OnboardingBasicsScreen from '../screens/Auth/OnboardingBasicsScreen';
+import PrivacyVisibilityScreen from '../screens/Settings/PrivacyVisibilityScreen';
+import DiscoverySettingsScreen from '../screens/Settings/DiscoverySettingsScreen';
 import OnboardingLanguagesScreen from '../screens/Auth/OnboardingLanguagesScreen';
 import OnboardingPhotoScreen from '../screens/Auth/OnboardingPhotoScreen';
 import OnboardingSuccessScreen, { OPEN_BUILDER_KEY } from '../screens/Auth/OnboardingSuccessScreen';
@@ -20,15 +58,38 @@ import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import HomeScreen from '../screens/Tabs/HomeScreen';
 import ConnectionsScreen from '../screens/Tabs/ConnectionsScreen';
 import JourneyScreen from '../screens/Journey/JourneyScreen';
+import SetuGuideSettingsScreen from '../screens/Settings/SetuGuideSettingsScreen';
 import StageScreen from '../screens/Journey/StageScreen';
 import ReflectIntroScreen from '../screens/Journey/ReflectIntroScreen';
+import ChangePhoneScreen from '../screens/Settings/ChangePhoneScreen';
+import ChangeEmailScreen from '../screens/Settings/ChangeEmailScreen';
+import LocationSettingsScreen from '../screens/Settings/LocationSettingsScreen';
+import ManageAccountScreen from '../screens/Settings/ManageAccountScreen';
 import ReflectPrivacyScreen from '../screens/Journey/ReflectPrivacyScreen';
 import ChatThreadScreen from '../screens/Chats/ChatThreadScreen';
 import ChatProfileScreen from '../screens/Chats/ChatProfileScreen';
 import ReflectQuestionScreen from '../screens/Journey/ReflectQuestionScreen';
+import EditPersonalInfoScreen from '../screens/Settings/EditPersonalInfoScreen';
+import PhoneNumberScreen from '../screens/Settings/PhoneNumberScreen';
+import EmailAddressScreen from '../screens/Settings/EmailAddressScreen';
+import DownloadDataScreen from '../screens/Settings/DownloadDataScreen';
+import DataRequestSubmittedScreen from '../screens/Settings/DataRequestSubmittedScreen';
+import UserUnblockedScreen from '../screens/Settings/UserUnblockedScreen';
+import ProfileSharingScreen from '../screens/Settings/ProfileSharingScreen';
+import WhoCanSeeProfileScreen from '../screens/Settings/WhoCanSeeProfileScreen';
 import ReflectDoneScreen from '../screens/Journey/ReflectDoneScreen';
 import GuideChatScreen from '../screens/Guide/GuideChatScreen';
+import HelpScreen from '../screens/Settings/HelpScreen';
+import AboutScreen from '../screens/Settings/AboutScreen';
 import ChatsScreen from '../screens/Chats/ChatsScreen';
+import DailyRoutineScreen from '../screens/ProfileBuilder/DailyRoutineScreen';
+import ChangePasswordScreen from '../screens/Settings/ChangePasswordScreen';
+
+import DevicesScreen from '../screens/Settings/DevicesScreen';
+import DeleteAccountScreen from '../screens/Settings/DeleteAccountScreen';
+import MusicScreen from '../screens/ProfileBuilder/MusicScreen';
+import EntertainmentScreen from '../screens/ProfileBuilder/EntertainmentScreen';
+import FitnessScreen from '../screens/ProfileBuilder/FitnessScreen';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import ProfileDetailScreen from '../screens/Profile/ProfileDetailScreen';
 import EditProfileScreen from '../screens/Profile/EditProfileScreen';
@@ -77,40 +138,115 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      {user ? (
-        // Signed in
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={startRoute ?? 'Main'}>
-          <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="ProfileBuilder" component={ProfileBuilderScreen} />
-          <Stack.Screen name="Notifications" component={NotificationsScreen} />
-          <Stack.Screen name="Stage" component={StageScreen} />
-          <Stack.Screen name="ReflectIntro" component={ReflectIntroScreen} />
-          <Stack.Screen name="ReflectPrivacy" component={ReflectPrivacyScreen} />
-          <Stack.Screen name="ReflectQuestion" component={ReflectQuestionScreen} />
-          <Stack.Screen name="ReflectDone" component={ReflectDoneScreen} />
-          <Stack.Screen name="ReflectResults" component={ReflectResultsScreen} />
-          <Stack.Screen name="Guide" component={GuideChatScreen} />
-          {/* alias: some screens navigate to 'GuideChat'. Remove once every call uses 'Guide'. */}
-          <Stack.Screen name="GuideChat" component={GuideChatScreen} />
-          <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
-          <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-        </Stack.Navigator>
-      ) : (
-        // Signed out: Welcome -> phone -> OTP -> onboarding. The app always starts on Welcome.
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
-          <Stack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
-          <Stack.Screen name="OnboardingBasics" component={OnboardingBasicsScreen} />
-          <Stack.Screen name="OnboardingLanguages" component={OnboardingLanguagesScreen} />
-          <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
-<Stack.Screen name="ChatProfile" component={ChatProfileScreen} />
-          <Stack.Screen name="OnboardingPhoto" component={OnboardingPhotoScreen} />
-          <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
-        </Stack.Navigator>
-      )}
-    </NavigationContainer>
+   <NavigationContainer
+  onStateChange={() => {
+    // web only: drop focus from the screen we just left, so the browser doesn't warn about aria-hidden
+    if (Platform.OS === 'web') (globalThis as any).document?.activeElement?.blur?.();
+  }}
+>
+  {user ? (
+    // Signed in
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={startRoute ?? 'Main'}>
+      <Stack.Screen name="Main" component={MainTabs} />
+      <Stack.Screen name="ProfileBuilder" component={ProfileBuilderScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen name="Stage" component={StageScreen} />
+      <Stack.Screen name="ReflectIntro" component={ReflectIntroScreen} />
+      <Stack.Screen name="ReflectPrivacy" component={ReflectPrivacyScreen} />
+      <Stack.Screen name="ReflectQuestion" component={ReflectQuestionScreen} />
+      <Stack.Screen name="ReflectDone" component={ReflectDoneScreen} />
+      <Stack.Screen name="ReflectResults" component={ReflectResultsScreen} />
+      <Stack.Screen name="Guide" component={GuideChatScreen} />
+      {/* alias: some screens navigate to 'GuideChat'. Remove once every call uses 'Guide'. */}
+      <Stack.Screen name="GuideChat" component={GuideChatScreen} />
+      <Stack.Screen name="ChatThread" component={ChatThreadScreen} />
+      <Stack.Screen name="ChatProfile" component={ChatProfileScreen} />
+      <Stack.Screen name="ProfileTabs" component={ProfileTabsScreen} />
+      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="EditSection" component={EditSectionScreen} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+      <Stack.Screen name="DeactivateAccount" component={DeactivateAccountScreen} />
+<Stack.Screen name="ConfirmDeletion" component={ConfirmDeletionScreen} />
+<Stack.Screen name="AccountDeleted" component={AccountDeletedScreen} />
+<Stack.Screen name="EmailUpdated" component={EmailUpdatedScreen} />
+      <Stack.Screen name="PreferencesBasic" component={PreferencesBasicScreen} />
+      <Stack.Screen name="PreferencesBasic2" component={PreferencesBasic2Screen} />
+      <Stack.Screen name="PreferencesLifestyle" component={PreferencesLifestyleScreen} />
+      <Stack.Screen name="PreferencesFamily" component={PreferencesFamilyScreen} />
+      <Stack.Screen name="MatchProfile" component={MatchProfileScreen} />
+
+      {/* Settings and everything under it */}
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="Verification" component={VerificationScreen} />
+      <Stack.Screen name="Account" component={AccountScreen} />
+      <Stack.Screen name="ManageAccount" component={ManageAccountScreen} />
+      <Stack.Screen name="ChangePhone" component={ChangePhoneScreen} />
+      <Stack.Screen name="SafetyResources" component={ReportSafetyScreen} />
+<Stack.Screen name="ReportReason" component={ReportReasonScreen} />
+<Stack.Screen name="ReportDetails" component={ReportDetailsScreen} />
+<Stack.Screen name="ReportSubmitted" component={ReportSubmittedScreen} />
+      <Stack.Screen name="VerifyPhone" component={VerifyPhoneScreen} />
+<Stack.Screen name="PhoneUpdated" component={PhoneUpdatedScreen} />
+      <Stack.Screen name="ChangeEmail" component={ChangeEmailScreen} />
+      <Stack.Screen name="PrivacySafety" component={PrivacyVisibilityScreen} />
+<Stack.Screen name="PhoneNumber" component={PhoneNumberScreen} />
+<Stack.Screen name="EmailAddress" component={EmailAddressScreen} />
+<Stack.Screen name="EmailChange" component={ChangeEmailScreen} />
+<Stack.Screen name="EditPersonalInfo" component={EditPersonalInfoScreen} />
+<Stack.Screen name="DownloadData" component={DownloadDataScreen} />
+<Stack.Screen name="DataRequestSubmitted" component={DataRequestSubmittedScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+      <Stack.Screen name="PasswordSecurity" component={PasswordSecurityScreen} /> 
+      <Stack.Screen name="FoodHabits" component={FoodHabitsScreen} />
+      <Stack.Screen name="Travel" component={TravelScreen} />
+      <Stack.Screen name="Hobbies" component={HobbiesScreen} />
+      <Stack.Screen name="Music" component={MusicScreen} />
+<Stack.Screen name="Entertainment" component={EntertainmentScreen} />
+<Stack.Screen name="Fitness" component={FitnessScreen} />
+<Stack.Screen name="DailyRoutine" component={DailyRoutineScreen} />     
+      <Stack.Screen name="Devices" component={DevicesScreen} />
+      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="PrivacyVisibility" component={PrivacyVisibilityScreen} />
+      <Stack.Screen name="DiscoverySettings" component={DiscoverySettingsScreen} />
+      <Stack.Screen name="WhoCanFindMe" component={WhoCanSeeProfileScreen} />
+      <Stack.Screen name="DistanceVisibility" component={ComingSoonScreen} />
+      <Stack.Screen name="AgeVisibility" component={ComingSoonScreen} />
+      <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+      <Stack.Screen name="UserUnblocked" component={UserUnblockedScreen} />
+<Stack.Screen name="ProfileSharing" component={ProfileSharingScreen} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+      <Stack.Screen name="SetuGuideSettings" component={SetuGuideSettingsScreen} />
+      <Stack.Screen name="AIPrivacy" component={AIPrivacyScreen} />
+      <Stack.Screen name="AIHistory" component={ComingSoonScreen} />
+      <Stack.Screen name="SensitiveTopics" component={ComingSoonScreen} />
+      <Stack.Screen name="DataUsage" component={ComingSoonScreen} />
+      <Stack.Screen name="ChatSettings" component={ChatSettingsScreen} />
+      <Stack.Screen name="ReportChat" component={ComingSoonScreen} />
+      <Stack.Screen name="LocationSettings" component={LocationSettingsScreen} />
+      <Stack.Screen name="Language" component={LanguageScreen} />
+      <Stack.Screen name="Appearance" component={AppearanceScreen} />
+      <Stack.Screen name="Help" component={HelpScreen} />
+      <Stack.Screen name="FAQs" component={FAQsScreen} />
+      <Stack.Screen name="CommunityGuidelines" component={ComingSoonScreen} />
+      <Stack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="OurStory" component={ComingSoonScreen} />
+      <Stack.Screen name="Licenses" component={ComingSoonScreen} />
+    </Stack.Navigator>
+  ) : (
+    // Signed out: Welcome -> phone -> OTP -> onboarding. The app always starts on Welcome.
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+      <Stack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
+      <Stack.Screen name="OnboardingBasics" component={OnboardingBasicsScreen} />
+      <Stack.Screen name="OnboardingLanguages" component={OnboardingLanguagesScreen} />
+      <Stack.Screen name="OnboardingPhoto" component={OnboardingPhotoScreen} />
+      <Stack.Screen name="OnboardingSuccess" component={OnboardingSuccessScreen} />
+    </Stack.Navigator>
+  )}
+</NavigationContainer>
   );
 }

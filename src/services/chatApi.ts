@@ -1,5 +1,6 @@
-import { BASE_URL, getToken, request, USE_MOCK } from './api';
+import { BASE_URL, getActive, getToken, request, USE_MOCK } from './api';
 import { delay } from './mockData';
+import { mockFaults, shouldFailSend } from './mockFaults';
 
 // ---------- Setu Guide (app -> POST /guide/chat on OUR backend, never the AI service) ----------
 export type Intent = 'conversation_ideas' | 'help_me_understand' | 'next_steps' | 'privacy_safety';
@@ -20,10 +21,26 @@ const FALLBACK: GuideReply = {
   fallback_used: true,
 };
 
+// Shown when there is no active connection to ask about. The backend needs a connectionId.
+const NO_CONNECTION: GuideReply = {
+  reply: 'Setu Guide works with your active connection. Connect with someone first, and I can help from there.',
+};
+
 let warmedUp = false; // the first call can take about a minute on the free staging service
 
-export async function askGuide(p: { intent?: Intent; message?: string; topic?: string; connectionId?: string }): Promise<GuideReply> {
+export async function askGuide(p: {
+  connectionId?: string; intent?: Intent; message?: string; topic?: string;
+}): Promise<GuideReply> {
   if (USE_MOCK) { await delay(1000); return mockGuide(p); }
+
+  // connectionId lets the backend check that this user belongs to the connection and read the
+  // current Journey stage itself. Use the one passed in, otherwise the active connection.
+  let connectionId = p.connectionId;
+  if (!connectionId) {
+    try { connectionId = (await getActive())[0]?.id; } catch { /* handled below */ }
+  }
+  if (!connectionId) return NO_CONNECTION;
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), warmedUp ? 25000 : 70000);
   try {
@@ -32,10 +49,9 @@ export async function askGuide(p: { intent?: Intent; message?: string; topic?: s
       method: 'POST',
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      // The Node bridge validates connection membership, so the active connection id is required.
-      // Callers should pass it; it is optional here to avoid breaking the current mock-mode screens.
+      // The stage and user id come from the server, not from the app.
       body: JSON.stringify({
-        ...(p.connectionId ? { connectionId: p.connectionId } : {}),
+        connectionId,
         intent: p.intent,
         message: p.message?.slice(0, 500),
         topic: p.topic?.slice(0, 100),
@@ -152,6 +168,7 @@ export async function getChats(filter: ChatFilter, query: string): Promise<ChatI
   // the real backend now receives the search text too (before, search only worked in mock mode)
   if (!USE_MOCK) return request(`/chats?filter=${filter}&q=${encodeURIComponent(query.trim())}`);
   await delay(500);
+  if (mockFaults.chat) throw new Error('Mock chat failure');
   return chatStore.chats
     .filter((c) =>
       (filter === 'all' || (filter === 'active' && c.online) || (filter === 'new' && c.isNew) || (filter === 'muted' && c.muted)) &&
@@ -163,12 +180,14 @@ export async function getChats(filter: ChatFilter, query: string): Promise<ChatI
 export async function getMessages(chatId: string): Promise<Msg[]> {
   if (!USE_MOCK) return request(`/chats/${chatId}/messages`); // cursor paging can be added later
   await delay(300);
+  if (mockFaults.chat) throw new Error('Mock chat failure');
   return [...(chatStore.msgs[chatId] ?? [])];
 }
 
 export async function sendMessage(chatId: string, text: string): Promise<Msg> {
   if (!USE_MOCK) return request(`/chats/${chatId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
   await delay(400);
+  if (shouldFailSend(text)) throw new Error('Mock send failure');
   const m: Msg = { id: `m${Date.now()}`, mine: true, text, time: nowTime() };
   chatStore.msgs[chatId] = [...(chatStore.msgs[chatId] ?? []), m];
   // keep the chat list in step with the thread
