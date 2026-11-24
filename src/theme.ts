@@ -28,6 +28,14 @@ export const fonts = {
   bold: 'Inter_700Bold',
 };
 
+// Used by the Settings, Help and About screens (matches the Figma for those frames)
+export const settingsFonts = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+};
+
 export const shadow = {
   card: {
     shadowColor: '#0F172A',
